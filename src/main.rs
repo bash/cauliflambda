@@ -1,70 +1,45 @@
-use unicode_xid::UnicodeXID;
-use winnow::combinator::alt;
-use winnow::stream::Stream;
-use winnow::token::{one_of, take_while};
-use winnow::{IResult, Parser};
+use self::parser::*;
+use codespan_reporting::diagnostic::{Diagnostic, Label};
+use codespan_reporting::files::SimpleFiles;
+use codespan_reporting::term;
+use codespan_reporting::term::termcolor::{ColorChoice, StandardStream};
+use std::{iter, ops::Range};
+use winnow::{Located, Parser};
 
-const LAMBDA_CHARACTER: char = 'ƛ';
+mod ast;
+mod parser;
 
-fn parse_lambda(input: &str) -> IResult<&str, char> {
-    one_of("&ƛ").parse_next(input)
-}
-
-fn is_xid_start(c: char) -> bool {
-    UnicodeXID::is_xid_start(c) && c != LAMBDA_CHARACTER
-}
-
-fn is_xid_continue(c: char) -> bool {
-    UnicodeXID::is_xid_continue(c) && c != LAMBDA_CHARACTER
-}
-
-fn parse_identifier(input: &str) -> IResult<&str, Identifier> {
-    let mut parser = (one_of(is_xid_start), take_while(0.., is_xid_continue));
-    parser.parse_next(input).map(|(remainder, _)| {
-        (
-            remainder,
-            Identifier(&input[..(input.eof_offset() - remainder.eof_offset())]),
-        )
-    })
-}
-
-#[derive(Debug)]
-struct Identifier<'a>(&'a str);
-
-#[derive(Debug)]
-struct Abstraction<'a> {
-    variable: Identifier<'a>,
-    term: Term<'a>,
-}
-
-#[derive(Debug)]
-struct Substitution<'a> {
-    left: Term<'a>,
-    right: Term<'a>,
-}
-
-#[derive(Debug)]
-enum Term<'a> {
-    Abs(Box<Abstraction<'a>>),
-    Sub(Box<Substitution<'a>>),
-    Var(Box<Identifier<'a>>),
-}
-
-fn parse_term(input: &str) -> IResult<&str, Term> {
-    alt((
-        parse_abstraction.map(|a| Term::Abs(Box::new(a))),
-        parse_identifier.map(|v| Term::Var(Box::new(v))),
-    ))
-    .parse_next(input)
-}
-
-fn parse_abstraction(input: &str) -> IResult<&str, Abstraction> {
-    ('(', parse_lambda, parse_identifier, '.', parse_term, ')')
-        .map(|(_, _, variable, _, term, _)| Abstraction { variable, term })
-        .parse_next(input)
-}
+// TODO: multi params
+// TODO: understand and use cut_error
 
 fn main() {
-    let abs = parse_term.parse("(ƛx.(ƛy.y))").unwrap();
-    println!("{abs:?}");
+    let input = include_str!("../bind.lc");
+    let script = script
+        .parse(Located::new(input))
+        .unwrap_or_else(|error| panic!("{error:#?}"));
+    println!("{script}");
+
+    let mut files = SimpleFiles::new();
+
+    let file_id = files.add("example.lc", input);
+
+    let span_1: &Range<usize> = &script.definitions[0].scheme.left.span;
+    let span_2: &Range<usize> = &script.definitions[0].scheme.right.span;
+
+    let diagnostic = Diagnostic::note()
+        .with_message("Foo bar baz")
+        .with_labels(vec![
+            Label::primary(file_id, span_1.clone()).with_message("lhs"),
+            Label::primary(file_id, span_2.clone()).with_message("rhs"),
+        ]);
+
+    // We now set up the writer and configuration, and then finally render the
+    // diagnostic to standard error.
+
+    let writer = StandardStream::stderr(ColorChoice::Always);
+    let mut config = codespan_reporting::term::Config::default();
+    config.before_label_lines = 2;
+    config.after_label_lines = 2;
+
+    term::emit(&mut writer.lock(), &config, &files, &diagnostic).unwrap();
 }

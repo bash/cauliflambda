@@ -1,0 +1,11 @@
+# Schematic definitions
+[m + n] -> (λf.λx.m f (n f x))
+
+(λJust.λNothing.&incr # Commments!
+ . # another comment
+ (λm. m incr 0) # Increment if Just, otherwise use zero
+ (Just x) # Just x
+)
+(λa.λj.λn.j a) # Just
+(λj.λn.n) # Nothing
+(&x.[x + 1])

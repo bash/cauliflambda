@@ -6,5 +6,6 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+codespan-reporting = { git = "https://github.com/brendanzab/codespan", rev = "c84116f5" }
 unicode-xid = "0.2.4"
 winnow = "0.4.6"
