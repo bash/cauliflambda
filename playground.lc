@@ -1,0 +1,8 @@
+(&Tuple.
+ &first.
+ &second.
+ (Tuple X Y) second
+)
+(&a.&b.&s.s a b) # Tuple
+(&a.&b.a) # first
+(&a.&b.b) # second

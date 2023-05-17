@@ -133,6 +133,7 @@ fn schematic_definition(input: Input) -> IResult<SchematicDefinition> {
 
 // ascSymbol from https://www.haskell.org/onlinereport/haskell2010/haskellch2.html#x7-160002.2
 // with the exception of & and . as we use these characters in our grammar.
+// We don't use , or ; in our grammar, so these are available additionally.
 fn is_ascii_symbol(c: char) -> bool {
     matches!(
         c,
@@ -153,6 +154,8 @@ fn is_ascii_symbol(c: char) -> bool {
             | '-'
             | '~'
             | ':'
+            | ';'
+            | ','
     )
 }
 

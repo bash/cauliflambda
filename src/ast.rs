@@ -1,7 +1,7 @@
 use std::fmt;
 use std::ops::Range;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Identifier<'a> {
     pub value: &'a str,
     pub span: Range<usize>,
