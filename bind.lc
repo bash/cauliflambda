@@ -1,5 +1,7 @@
 # Schematic definitions
 [m + n] -> (λf.λx.m f (n f x))
+#Nothing -> Just
+#Just -> Nothing
 
 (λJust.λNothing.&incr # Commments!
  . # another comment

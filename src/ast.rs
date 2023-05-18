@@ -13,7 +13,7 @@ impl<'a> fmt::Display for Identifier<'a> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Abstraction<'a> {
     pub variable: Identifier<'a>,
     pub formula: Formula<'a>,
@@ -25,7 +25,7 @@ impl<'a> fmt::Display for Abstraction<'a> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Application<'a> {
     pub left: Formula<'a>,
     pub right: Formula<'a>,
@@ -38,7 +38,7 @@ impl<'a> fmt::Display for Application<'a> {
 }
 
 /// A symbol used in schematic definitions
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct Symbol<'a>(pub &'a str);
 
 impl<'a> fmt::Display for Symbol<'a> {
@@ -50,7 +50,7 @@ impl<'a> fmt::Display for Symbol<'a> {
 /// A scheme for replacing expressions of a certain form.
 /// Example: `[M * N]`
 // TODO: Currently schemes are binary only, extend this to allow n-ary schemes (for n >= 1)
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Scheme<'a> {
     pub left: Identifier<'a>,
     pub symbol: Symbol<'a>,
@@ -65,7 +65,7 @@ impl<'a> fmt::Display for Scheme<'a> {
 
 /// A schematic definition.
 /// Example: `[M * N] -> (λa.M (N a))`
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SchematicDefinition<'a> {
     pub scheme: Scheme<'a>,
     pub formula: Formula<'a>,
@@ -77,7 +77,7 @@ impl<'a> fmt::Display for SchematicDefinition<'a> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Formula<'a> {
     Abs(Box<Abstraction<'a>>),
     App(Box<Application<'a>>),
@@ -96,7 +96,7 @@ impl<'a> fmt::Display for Formula<'a> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Script<'a> {
     pub definitions: Vec<SchematicDefinition<'a>>,
     pub formula: Formula<'a>,
@@ -109,4 +109,8 @@ impl<'a> fmt::Display for Script<'a> {
         }
         write!(f, "{}", self.formula)
     }
+}
+
+pub fn abs<'a>(variable: Identifier<'a>, formula: Formula<'a>) -> Formula<'a> {
+    Formula::Abs(Box::new(Abstraction { variable, formula }))
 }

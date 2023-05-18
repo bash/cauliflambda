@@ -1,8 +1,5 @@
-(&Tuple.
- &first.
- &second.
- (Tuple X Y) second
-)
-(&a.&b.&s.s a b) # Tuple
-(&a.&b.a) # first
-(&a.&b.b) # second
+[m + n] -> (λf.λx.m f (n f x))
+
+(&3. &5. [3 + 5])
+(&f.&x.f (f (f x)))
+(&f.&x.f (f (f (f (f x)))))

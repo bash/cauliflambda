@@ -24,7 +24,7 @@ fn main() {
         .parse(Located::new(input))
         .unwrap_or_else(|error| panic!("{error:#?}"));
     // println!("{script}");
-    let lowered = lower_to_namefree(script.formula);
+    let lowered = lower_to_namefree(script);
     // println!("{lowered}");
 
     let reduction_steps = std::iter::successors(Some(lowered), |lowered| {

@@ -48,7 +48,17 @@ pub struct Application<'a>(pub Expression<'a>, pub Expression<'a>);
 
 impl<'a> fmt::Display for Application<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "({})({})", &self.0, &self.1)
+        if let Expression::App(_) | Expression::Const(_) | Expression::Var(_) = self.0 {
+            write!(f, "{}", &self.0)?;
+        } else {
+            write!(f, "({})", &self.0)?;
+        }
+
+        if let Expression::Const(_) | Expression::Var(_) = self.1 {
+            write!(f, " {}", &self.1)
+        } else {
+            write!(f, " ({})", &self.1)
+        }
     }
 }
 
