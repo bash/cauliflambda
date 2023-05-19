@@ -117,7 +117,7 @@ impl From<Range<usize>> for Span {
 }
 
 impl Span {
-    pub fn containing(a: &Span, b: &Span) -> Span {
+    pub(crate) fn containing(a: &Span, b: &Span) -> Span {
         Span {
             start: min(a.start, b.start),
             end: min(a.end, b.end),
