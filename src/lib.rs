@@ -1,5 +1,3 @@
-fn main() {
-    println!("Hello, world!");
-}
-mod ast;
+pub mod ast;
 mod parsing;
+pub use parsing::*;
