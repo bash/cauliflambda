@@ -1,0 +1,13 @@
+[package]
+name = "cauliflambda-bin"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "cauliflambda"
+path = "src/main.rs"
+
+[dependencies]
+codespan-reporting = { git = "https://github.com/brendanzab/codespan", rev = "c84116f5" }
+rustyline = { version = "11.0.0", features = ["with-file-history", "derive"] }
+cauliflambda = { path = "../../" }
