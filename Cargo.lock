@@ -3,7 +3,7 @@
 version = 3
 
 [[package]]
-name = "bash-calculus"
+name = "cauliflambda"
 version = "0.1.0"
 dependencies = [
  "trait-set",
