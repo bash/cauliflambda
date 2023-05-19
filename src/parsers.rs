@@ -1,4 +1,4 @@
-use crate::syntax::*;
+use crate::{syntax::*, DiagnosticsResult};
 use trait_set::trait_set;
 use unicode_xid::UnicodeXID;
 use winnow::ascii::{multispace1, not_line_ending};
@@ -16,8 +16,8 @@ trait_set! {
     trait Parser<'a, O> = winnow::Parser<Input<'a>, O, VerboseError<Input<'a>>>;
 }
 
-pub fn parse_formula(input: &str) -> Result<Formula<'_>, Error<'_>> {
-    formula.parse(Input::new(input))
+pub fn parse_formula(input: &str) -> DiagnosticsResult<Formula<'_>> {
+    todo!()
 }
 
 fn formula(input: Input<'_>) -> IResult<'_, Formula<'_>> {
