@@ -9,13 +9,18 @@ use winnow::token::{one_of, take_while};
 use winnow::{Located, Parser as _};
 
 type Input<'a> = Located<&'a str>;
-type IResult<'a, O> = winnow::IResult<Input<'a>, O, VerboseError<Input<'a>>>;
+type Error<'a> = VerboseError<Input<'a>>;
+type IResult<'a, O> = winnow::IResult<Input<'a>, O, Error<'a>>;
 
 trait_set! {
     trait Parser<'a, O> = winnow::Parser<Input<'a>, O, VerboseError<Input<'a>>>;
 }
 
-pub fn formula(input: Input) -> IResult<Formula> {
+pub fn parse_formula<'a>(input: &'a str) -> Result<Formula<'a>, Error<'a>> {
+    formula.parse(Input::new(input))
+}
+
+fn formula<'a>(input: Input<'a>) -> IResult<'a, Formula<'a>> {
     fold_repeat(
         1..,
         delimited(trivia, one_formula, trivia),
