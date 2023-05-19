@@ -1,6 +1,6 @@
 use std::fmt;
 
-pub fn abs<'a>(expr: Expression<'a>) -> Expression<'a> {
+pub fn abs(expr: Expression<'_>) -> Expression<'_> {
     Expression::Abs(Box::new(Abstraction(expr)))
 }
 
@@ -12,7 +12,7 @@ pub fn app<'a>(lhs: Expression<'a>, rhs: Expression<'a>) -> Expression<'a> {
     Expression::App(Box::new(Application(lhs, rhs)))
 }
 
-pub fn r#const<'a>(name: &'a str) -> Expression<'a> {
+pub fn r#const(name: &str) -> Expression<'_> {
     Expression::Const(Constant(name))
 }
 
