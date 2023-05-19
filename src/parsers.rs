@@ -33,7 +33,7 @@ fn to_diagnostics(error: Error) -> Diagnostics {
     let location = input.location();
     Diagnostics(vec![Diagnostic {
         severity: DiagnosticSeverity::Error,
-        message: error_to_message(&error).into(),
+        message: error_to_message(error).into(),
         source: Span {
             start: location,
             end: location,

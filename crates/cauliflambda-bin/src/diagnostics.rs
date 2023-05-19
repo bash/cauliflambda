@@ -13,11 +13,11 @@ pub fn unwrap_diagnostics_result<O>(
 ) -> Result<O, ()> {
     match result {
         Ok(output) => {
-            print_diagnostics(&path, &input, &output.diagnostics);
+            print_diagnostics(path, input, &output.diagnostics);
             Ok(output.value)
         }
         Err(diagnostics) => {
-            print_diagnostics(&path, &input, &diagnostics);
+            print_diagnostics(path, input, &diagnostics);
             Err(())
         }
     }

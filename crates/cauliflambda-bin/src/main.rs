@@ -20,7 +20,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 }
 
 fn help() -> Result<(), Box<dyn Error>> {
-    println!("Usage: {} [FILE]", env::args().nth(0).unwrap());
+    println!("Usage: {} [FILE]", env::args().next().unwrap());
     Ok(())
 }
 
