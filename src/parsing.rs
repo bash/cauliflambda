@@ -16,11 +16,11 @@ trait_set! {
     trait Parser<'a, O> = winnow::Parser<Input<'a>, O, VerboseError<Input<'a>>>;
 }
 
-pub fn parse_formula<'a>(input: &'a str) -> Result<Formula<'a>, Error<'a>> {
+pub fn parse_formula(input: &str) -> Result<Formula<'_>, Error<'_>> {
     formula.parse(Input::new(input))
 }
 
-fn formula<'a>(input: Input<'a>) -> IResult<'a, Formula<'a>> {
+fn formula(input: Input<'_>) -> IResult<'_, Formula<'_>> {
     fold_repeat(
         1..,
         delimited(trivia, one_formula, trivia),
@@ -82,7 +82,7 @@ fn identifier(input: Input) -> IResult<Identifier> {
 const LAMBDA: char = 'λ';
 
 fn is_identifier_start(c: char) -> bool {
-    (c.is_xid_start() && c != LAMBDA) || matches!(c, '0'..='9') || matches!(c, '_')
+    (c.is_xid_start() && c != LAMBDA) || c.is_ascii_digit() || matches!(c, '_')
 }
 
 fn is_identifier_continue(c: char) -> bool {
@@ -116,7 +116,7 @@ mod tests {
     #[test]
     fn parses_identifiers() {
         for text in IDENTIFIERS {
-            let id = parse(&text, identifier);
+            let id = parse(text, identifier);
             assert_eq!(*text, id.value);
         }
     }
