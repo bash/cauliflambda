@@ -1,3 +1,4 @@
+use std::cmp::min;
 use std::fmt;
 use std::ops::Range;
 
@@ -17,11 +18,11 @@ impl<'a> Formula<'a> {
         Formula::App(Box::new(application))
     }
 
-    pub fn span(&self) -> Span {
+    pub fn span(&self) -> &Span {
         match self {
-            Formula::Abs(a) => a.span.clone(),
-            Formula::App(a) => a.span.clone(),
-            Formula::Var(v) => v.span.clone(),
+            Formula::Abs(a) => &a.span,
+            Formula::App(a) => &a.span,
+            Formula::Var(v) => &v.span,
         }
     }
 }
@@ -32,6 +33,17 @@ impl<'a> fmt::Display for Formula<'a> {
             Formula::Abs(abs) => write!(f, "{}", abs),
             Formula::App(app) => write!(f, "{}", app),
             Formula::Var(var) => write!(f, "{}", var),
+        }
+    }
+}
+
+impl<'a> SyntaxEq for Formula<'a> {
+    fn syntax_eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Formula::Abs(l), Formula::Abs(r)) => l.syntax_eq(r),
+            (Formula::App(l), Formula::App(r)) => l.syntax_eq(r),
+            (Formula::Var(l), Formula::Var(r)) => l.syntax_eq(r),
+            _ => false,
         }
     }
 }
@@ -49,6 +61,12 @@ impl<'a> fmt::Display for Abstraction<'a> {
     }
 }
 
+impl<'a> SyntaxEq for Abstraction<'a> {
+    fn syntax_eq(&self, other: &Self) -> bool {
+        self.variable.syntax_eq(&other.variable) && self.formula.syntax_eq(&other.formula)
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Application<'a> {
     pub left: Formula<'a>,
@@ -59,6 +77,12 @@ pub struct Application<'a> {
 impl<'a> fmt::Display for Application<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "({} {})", self.left, self.right)
+    }
+}
+
+impl<'a> SyntaxEq for Application<'a> {
+    fn syntax_eq(&self, other: &Self) -> bool {
+        self.left.syntax_eq(&other.left) && self.right.syntax_eq(&other.right)
     }
 }
 
@@ -74,5 +98,33 @@ impl<'a> fmt::Display for Identifier<'a> {
     }
 }
 
+impl<'a> SyntaxEq for Identifier<'a> {
+    fn syntax_eq(&self, other: &Self) -> bool {
+        self.value == other.value
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Span(pub Range<usize>);
+pub struct Span {
+    pub start: usize,
+    pub end: usize,
+}
+
+impl From<Range<usize>> for Span {
+    fn from(Range { start, end }: Range<usize>) -> Self {
+        Span { start, end }
+    }
+}
+
+impl Span {
+    pub fn containing(a: &Span, b: &Span) -> Span {
+        Span {
+            start: min(a.start, b.start),
+            end: min(a.end, b.end),
+        }
+    }
+}
+
+pub trait SyntaxEq {
+    fn syntax_eq(&self, other: &Self) -> bool;
+}
