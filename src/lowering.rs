@@ -93,6 +93,6 @@ mod tests {
     }
 
     fn parse(input: &str) -> Formula<'_> {
-        crate::parsers::parse_formula(input).unwrap()
+        crate::parsers::parse_formula(input).unwrap().value
     }
 }

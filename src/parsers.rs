@@ -1,10 +1,12 @@
+use crate::diagnostics::*;
 use crate::syntax::*;
 use trait_set::trait_set;
 use unicode_xid::UnicodeXID;
 use winnow::ascii::{multispace1, not_line_ending};
-use winnow::combinator::{alt, fold_repeat, repeat};
-use winnow::error::VerboseError;
-use winnow::sequence::delimited;
+use winnow::combinator::{alt, cut_err, fold_repeat, repeat};
+use winnow::error::{VerboseError, VerboseErrorKind};
+use winnow::sequence::{delimited, preceded};
+use winnow::stream::Location;
 use winnow::token::{one_of, take_while};
 use winnow::{Located, Parser as _};
 
@@ -16,8 +18,34 @@ trait_set! {
     trait Parser<'a, O> = winnow::Parser<Input<'a>, O, VerboseError<Input<'a>>>;
 }
 
-pub fn parse_formula(input: &str) -> Result<Formula<'_>, Error<'_>> {
-    formula.parse(Input::new(input))
+pub fn parse_formula(input: &str) -> DiagnosticsResult<Formula<'_>> {
+    formula
+        .parse(Input::new(input))
+        .map(WithDiagnostics::with_empty_diagnostics)
+        .map_err(to_diagnostics)
+}
+
+fn to_diagnostics(error: Error) -> Diagnostics {
+    let (input, error) = error
+        .errors
+        .first()
+        .expect("At least one error was expected");
+    let location = input.location();
+    Diagnostics(vec![Diagnostic {
+        severity: DiagnosticSeverity::Error,
+        message: error_to_message(error).into(),
+        source: Span {
+            start: location,
+            end: location,
+        },
+    }])
+}
+
+fn error_to_message(error: &VerboseErrorKind) -> &'static str {
+    match error {
+        VerboseErrorKind::Context(context) => context,
+        VerboseErrorKind::Winnow(_) => "Unexpected input",
+    }
 }
 
 fn formula(input: Input<'_>) -> IResult<'_, Formula<'_>> {
@@ -51,11 +79,9 @@ fn one_formula(input: Input) -> IResult<Formula> {
 }
 
 fn abstraction(input: Input) -> IResult<Abstraction> {
-    (lambda, variable_list, '.', formula)
+    preceded(lambda, cut_err((variable_list, preceded('.', formula))))
         .with_span()
-        .map(|((_, variables, _, formula), span)| {
-            create_abstraction(variables, formula, span.into())
-        })
+        .map(|((variables, formula), span)| create_abstraction(variables, formula, span.into()))
         .parse_next(input)
 }
 
@@ -118,7 +144,7 @@ fn comment(input: Input) -> IResult<()> {
 }
 
 fn parenthesized<'a, O>(parser: impl Parser<'a, O>) -> impl Parser<'a, O> {
-    delimited(('(', trivia), parser, (trivia, ')'))
+    preceded('(', cut_err(delimited(trivia, parser, (trivia, ')'))))
 }
 
 fn discarded<'a, O>(parser: impl Parser<'a, O>) -> impl Parser<'a, ()> {
@@ -224,6 +250,30 @@ mod tests {
         let reference = dbg!(parse("((((((A B) C) D) E) F) G)", formula));
         let input = "A B C D E F G";
         assert!(parse(input, formula).syntax_eq(&reference));
+    }
+
+    #[test]
+    fn errors_are_reported_at_correct_location() {
+        let inputs = &[
+            "!", "A!", "(A!)", "(A)!", "&!", "&x!", "&x.(!)", "&x.!", "&x.x!",
+        ];
+
+        for input in inputs {
+            test_diagnostic_at_correct_location(input);
+        }
+    }
+
+    fn test_diagnostic_at_correct_location(input: &str) {
+        let error_index = input.find('!').unwrap();
+        let expected_span = Span {
+            start: error_index,
+            end: error_index,
+        };
+
+        let diagnostics = parse_formula(input).unwrap_err().0;
+
+        assert_eq!(1, diagnostics.len());
+        assert_eq!(expected_span, diagnostics.first().unwrap().source);
     }
 
     fn parse<'a, O>(input: &'a str, mut parser: impl Parser<'a, O>) -> O {
