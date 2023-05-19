@@ -16,15 +16,15 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build
-      run: cargo build
+      run: cargo build --workspace
     - name: Run tests
-      run: cargo test
+      run: cargo test --workspace
   lint:
     name: Lint
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
     - name: Check Format
-      run: cargo fmt --check
+      run: cargo fmt --check --all
     - name: Clippy
-      run: cargo clippy -- -Dwarnings
+      run: cargo clippy --workspace -- -Dwarnings

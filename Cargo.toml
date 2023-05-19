@@ -9,3 +9,8 @@ edition = "2021"
 trait-set = "0.3.0"
 unicode-xid = "0.2.4"
 winnow = "0.4.6"
+
+[workspace]
+members = [
+    "crates/cauliflambda-bin"
+]
