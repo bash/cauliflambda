@@ -39,7 +39,7 @@ pub struct Abstraction<'a>(pub Expression<'a>);
 
 impl<'a> fmt::Display for Abstraction<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "λ{}", &self.0)
+        write!(f, "(λ{})", &self.0)
     }
 }
 
@@ -48,17 +48,7 @@ pub struct Application<'a>(pub Expression<'a>, pub Expression<'a>);
 
 impl<'a> fmt::Display for Application<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if let Expression::App(_) | Expression::Const(_) | Expression::Var(_) = self.0 {
-            write!(f, "{}", &self.0)?;
-        } else {
-            write!(f, "({})", &self.0)?;
-        }
-
-        if let Expression::Const(_) | Expression::Var(_) = self.1 {
-            write!(f, " {}", &self.1)
-        } else {
-            write!(f, " ({})", &self.1)
-        }
+        write!(f, "({} {})", self.0, self.1)
     }
 }
 
@@ -152,6 +142,8 @@ impl<'e, 'a> Visit<'a, Expression<'a>> for Substituter<'e, 'a> {
                     depth: 0,
                 },
             )
+        } else if variable.0 > self.depth {
+            Expression::Var(Variable(variable.0 - 1))
         } else {
             Expression::Var(variable)
         }

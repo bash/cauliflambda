@@ -11,9 +11,11 @@ use std::ops::Range;
 use winnow::{Located, Parser};
 
 mod ast;
+mod chars;
 mod lowering;
 mod namefree;
 mod parser;
+mod span;
 
 // TODO: multi params
 // TODO: understand and use cut_error

@@ -7,5 +7,6 @@ edition = "2021"
 
 [dependencies]
 codespan-reporting = { git = "https://github.com/brendanzab/codespan", rev = "c84116f5" }
+trait-set = "0.3.0"
 unicode-xid = "0.2.4"
 winnow = "0.4.6"

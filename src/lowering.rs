@@ -1,9 +1,7 @@
 use std::collections::HashMap;
 
-use crate::ast::{
-    abs, Abstraction, Formula, Identifier, SchematicDefinition, Scheme, Script, Symbol,
-};
-use crate::namefree::{self as nf};
+use crate::ast::{Formula, Identifier, SchematicDefinition, Script, Symbol};
+use crate::namefree as nf;
 
 pub fn lower_to_namefree<'a>(script: Script<'a>) -> nf::Expression<'a> {
     let definitions = collect_definitions(script.definitions);
@@ -21,7 +19,7 @@ fn lower<'a>(formula: Formula<'a>, scope: &mut Scope<'a>) -> nf::Expression<'a> 
             lower(application.right, scope),
         ),
         Formula::Var(var) => lower_var(*var, &scope),
-        Formula::Scheme(scheme) => todo!(),
+        Formula::Scheme(_) => todo!(),
     }
 }
 
@@ -31,26 +29,6 @@ fn lower_var<'a>(variable: Identifier<'a>, scope: &Scope<'a>) -> nf::Expression<
         .map(|index| nf::var(index))
         .unwrap_or_else(|| nf::r#const(variable.value))
 }
-
-// fn lower_scheme<'a>(scheme: Scheme<'a>, scope: &mut Scope<'a>) -> nf::Expression<'a> {
-//     let definition = &scope.definitions[&scheme.symbol]; // TODO: proper error
-//     let abs = lower(
-//         abs(
-//             definition.scheme.left.clone(),
-//             abs(definition.scheme.right.clone(), definition.formula.clone()),
-//         ),
-//         &mut scope.definitions_only(),
-//     );
-//     // let app = nf::app(abs, lower(scheme.left));
-
-//     todo!()
-
-//     // todo!()
-//     // let definition_as_abs = lower(Formula::Abs(Abstraction {
-//     //     variable: definition.scheme.left,
-//     // }), scope);
-//     // app(app(lhs, scheme.left), scheme.right)
-// }
 
 #[derive(Default)]
 struct Scope<'a> {

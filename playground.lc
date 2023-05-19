@@ -1,5 +1,5 @@
-[m + n] -> (λf.λx.m f (n f x))
+# [m + n] -> (λf.λx.m f (n f x))
 
-(&3. &5. [3 + 5])
+(&n.&m.&f.&x.m f (n f x))
 (&f.&x.f (f (f x)))
 (&f.&x.f (f (f (f (f x)))))
