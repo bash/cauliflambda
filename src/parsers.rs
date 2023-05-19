@@ -67,11 +67,11 @@ fn create_abstraction<'a>(
     let mut variables = variables.into_iter();
     let innermost = Abstraction {
         variable: variables.next_back().unwrap_or_else(|| unreachable!()),
-        formula: formula,
+        formula,
         span: span.clone(),
     };
     variables.rfold(innermost, |abs, variable| Abstraction {
-        variable: variable,
+        variable,
         formula: Formula::abs(abs),
         span: span.clone(),
     })

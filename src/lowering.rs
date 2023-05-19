@@ -2,7 +2,7 @@ use crate::namefree as nf;
 use crate::syntax::{Formula, Identifier};
 
 /// Lowers a formula to its namefree equivalent.
-pub fn lower_formula<'a>(formula: Formula<'a>) -> nf::Expression<'a> {
+pub fn lower_formula(formula: Formula<'_>) -> nf::Expression<'_> {
     lower(formula, &mut Scope::default())
 }
 
@@ -16,14 +16,14 @@ fn lower<'a>(formula: Formula<'a>, scope: &mut Scope<'a>) -> nf::Expression<'a> 
             lower(application.left, scope),
             lower(application.right, scope),
         ),
-        Formula::Var(var) => lower_var(var, &scope),
+        Formula::Var(var) => lower_var(var, scope),
     }
 }
 
 fn lower_var<'a>(variable: Identifier<'a>, scope: &Scope<'a>) -> nf::Expression<'a> {
     scope
         .de_brujin_index(&variable)
-        .map(|index| nf::var(index))
+        .map(nf::var)
         .unwrap_or_else(|| nf::r#const(variable.value))
 }
 
@@ -92,7 +92,7 @@ mod tests {
         }
     }
 
-    fn parse<'a>(input: &'a str) -> Formula<'a> {
+    fn parse(input: &str) -> Formula<'_> {
         crate::parsers::parse_formula(input).unwrap()
     }
 }
