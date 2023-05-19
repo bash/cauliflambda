@@ -51,14 +51,34 @@ fn one_formula(input: Input) -> IResult<Formula> {
 }
 
 fn abstraction(input: Input) -> IResult<Abstraction> {
-    (lambda, trivia, identifier, trivia, '.', formula)
+    (lambda, variable_list, '.', formula)
         .with_span()
-        .map(|((_, _, variable, _, _, formula), span)| Abstraction {
-            variable,
-            formula,
-            span: span.into(),
+        .map(|((_, variables, _, formula), span)| {
+            create_abstraction(variables, formula, span.into())
         })
         .parse_next(input)
+}
+
+fn create_abstraction<'a>(
+    variables: Vec<Identifier<'a>>,
+    formula: Formula<'a>,
+    span: Span,
+) -> Abstraction<'a> {
+    let mut variables = variables.into_iter();
+    let innermost = Abstraction {
+        variable: variables.next_back().unwrap_or_else(|| unreachable!()),
+        formula: formula,
+        span: span.clone(),
+    };
+    variables.rfold(innermost, |abs, variable| Abstraction {
+        variable: variable,
+        formula: Formula::abs(abs),
+        span: span.clone(),
+    })
+}
+
+fn variable_list(input: Input) -> IResult<Vec<Identifier>> {
+    repeat(1.., delimited(trivia, identifier, trivia)).parse_next(input)
 }
 
 fn lambda(input: Input) -> IResult<char> {
@@ -138,6 +158,12 @@ mod tests {
             let abs = parse(text, abstraction);
             assert_eq!("x", abs.variable.value);
         }
+    }
+
+    #[test]
+    fn parses_abstraction_with_more_than_one_variable() {
+        let reference = parse("λx.(λy.(λz._))", abstraction);
+        assert!(parse("λx y z._", abstraction).syntax_eq(&reference));
     }
 
     #[test]
