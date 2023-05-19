@@ -116,6 +116,12 @@ impl From<Range<usize>> for Span {
     }
 }
 
+impl From<Span> for Range<usize> {
+    fn from(Span { start, end }: Span) -> Self {
+        Range { start, end }
+    }
+}
+
 impl Span {
     pub(crate) fn containing(a: &Span, b: &Span) -> Span {
         Span {
