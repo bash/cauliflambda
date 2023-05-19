@@ -1,3 +1,3 @@
-pub mod ast;
-mod parsing;
-pub use parsing::*;
+mod parsers;
+pub mod syntax;
+pub use parsers::*;

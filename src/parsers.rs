@@ -1,4 +1,4 @@
-use crate::ast::*;
+use crate::syntax::*;
 use trait_set::trait_set;
 use unicode_xid::UnicodeXID;
 use winnow::ascii::{multispace1, not_line_ending};
