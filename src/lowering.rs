@@ -3,24 +3,24 @@ use crate::syntax::{Formula, Identifier};
 
 /// Lowers a formula to its namefree equivalent.
 pub fn lower_formula(formula: Formula<'_>) -> nf::Expression<'_> {
-    lower(formula, &mut Scope::default())
+    lower(formula, &mut Context::default())
 }
 
-fn lower<'a>(formula: Formula<'a>, scope: &mut Scope<'a>) -> nf::Expression<'a> {
+fn lower<'a>(formula: Formula<'a>, context: &mut Context<'a>) -> nf::Expression<'a> {
     match formula {
         Formula::Abs(abstraction) => {
-            let scope = scope.push(abstraction.variable.clone());
-            nf::abs(lower(abstraction.formula, scope.0))
+            let context = context.push(abstraction.variable.clone());
+            nf::abs(lower(abstraction.formula, context.0))
         }
         Formula::App(application) => nf::app(
-            lower(application.left, scope),
-            lower(application.right, scope),
+            lower(application.left, context),
+            lower(application.right, context),
         ),
-        Formula::Var(var) => lower_var(var, scope),
+        Formula::Var(var) => lower_var(var, context),
     }
 }
 
-fn lower_var<'a>(variable: Identifier<'a>, scope: &Scope<'a>) -> nf::Expression<'a> {
+fn lower_var<'a>(variable: Identifier<'a>, scope: &Context<'a>) -> nf::Expression<'a> {
     scope
         .de_brujin_index(&variable)
         .map(nf::var)
@@ -28,11 +28,11 @@ fn lower_var<'a>(variable: Identifier<'a>, scope: &Scope<'a>) -> nf::Expression<
 }
 
 #[derive(Default, Debug)]
-struct Scope<'a> {
+struct Context<'a> {
     variables: Vec<Identifier<'a>>,
 }
 
-impl<'a> Scope<'a> {
+impl<'a> Context<'a> {
     fn push<'s>(&'s mut self, identifier: Identifier<'a>) -> VariableGuard<'s, 'a> {
         self.variables.push(identifier);
         VariableGuard(self)
@@ -48,7 +48,7 @@ impl<'a> Scope<'a> {
 }
 
 #[derive(Debug)]
-struct VariableGuard<'r, 'a>(&'r mut Scope<'a>);
+struct VariableGuard<'r, 'a>(&'r mut Context<'a>);
 
 impl<'r, 'a> Drop for VariableGuard<'r, 'a> {
     fn drop(&mut self) {
