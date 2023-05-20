@@ -6,3 +6,5 @@ pub use lowering::*;
 mod diagnostics;
 pub mod namefree;
 pub use diagnostics::*;
+mod reducing;
+pub use reducing::*;

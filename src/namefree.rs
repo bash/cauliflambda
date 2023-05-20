@@ -52,12 +52,47 @@ impl<'a> fmt::Display for Application<'a> {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 pub enum Expression<'a> {
     Const(Constant<'a>),
     Var(Variable),
     Abs(Box<Abstraction<'a>>),
     App(Box<Application<'a>>),
+}
+
+impl<'a> fmt::Debug for Expression<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Const(c) => c.fmt(f),
+            Self::Var(v) => v.fmt(f),
+            Self::Abs(a) => a.fmt(f),
+            Self::App(a) => a.fmt(f),
+        }
+    }
+}
+
+impl<'a> From<Constant<'a>> for Expression<'a> {
+    fn from(value: Constant<'a>) -> Self {
+        Expression::Const(value)
+    }
+}
+
+impl<'a> From<Variable> for Expression<'a> {
+    fn from(value: Variable) -> Self {
+        Expression::Var(value)
+    }
+}
+
+impl<'a> From<Abstraction<'a>> for Expression<'a> {
+    fn from(value: Abstraction<'a>) -> Self {
+        Expression::Abs(Box::new(value))
+    }
+}
+
+impl<'a> From<Application<'a>> for Expression<'a> {
+    fn from(value: Application<'a>) -> Self {
+        Expression::App(Box::new(value))
+    }
 }
 
 impl<'a> fmt::Display for Expression<'a> {
@@ -68,5 +103,29 @@ impl<'a> fmt::Display for Expression<'a> {
             Expression::Abs(a) => write!(f, "{}", a),
             Expression::App(a) => write!(f, "{}", a),
         }
+    }
+}
+
+pub(crate) trait Visit<'a> {
+    type Output;
+
+    fn constant(&self, constant: Constant<'a>) -> Self::Output;
+
+    fn variable(&self, variable: Variable) -> Self::Output;
+
+    fn abstraction(&self, abstraction: Abstraction<'a>) -> Self::Output;
+
+    fn application(&self, application: Application<'a>) -> Self::Output;
+}
+
+pub(crate) fn accept<'a, V>(expression: Expression<'a>, visitor: &V) -> V::Output
+where
+    V: Visit<'a>,
+{
+    match expression {
+        Expression::Const(c) => visitor.constant(c),
+        Expression::Var(v) => visitor.variable(v),
+        Expression::Abs(a) => visitor.abstraction(*a),
+        Expression::App(a) => visitor.application(*a),
     }
 }
