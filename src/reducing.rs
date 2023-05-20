@@ -183,7 +183,7 @@ mod tests {
     fn detects_expressions_that_cannot_be_reduced_futher() {
         let expressions = [
             r#const("foo"),
-            abs(abs(abs(var(3)))),
+            n_abs(3, var(3)),
             abs(app(app(var(1), var(1)), app(var(1), var(1)))),
             app(r#const("A"), abs(abs(var(2)))),
         ];
@@ -194,23 +194,82 @@ mod tests {
     }
 
     #[test]
-    fn reduces_outermost_application_first() {}
+    fn reduces_outermost_application_first() {
+        let expression = app(abs(app(id(), app(r#const("Y"), var(1)))), r#const("X"));
+
+        let reduced = unwrap_reduced(reduce_once(expression));
+
+        let expected = app(id(), app(r#const("Y"), r#const("X")));
+        assert_eq!(expected, reduced);
+    }
 
     #[test]
-    fn reduces_left_side_of_application_first_if_ambiguous() {}
+    fn reduces_left_side_of_application_first_if_ambiguous() {
+        let left = app(id(), r#const("L"));
+        let right = app(id(), r#const("R"));
+        let expression = app(left, right.clone());
+
+        let reduced = unwrap_reduced(reduce_once(expression));
+
+        let expected = app(r#const("L"), right);
+        assert_eq!(expected, reduced);
+    }
 
     #[test]
-    fn reduces_left_side_of_application_first_recursively_if_ambiguous() {}
+    fn reduces_left_side_of_application_first_recursively_if_ambiguous() {
+        let left_left = app(id(), r#const("LL"));
+        let left_right = app(id(), r#const("LR"));
+        let left = app(left_left, left_right.clone());
+        let right = app(id(), r#const("R"));
+        let expression = app(left, right.clone());
+
+        let reduced = unwrap_reduced(reduce_once(expression));
+
+        let expected = app(app(r#const("LL"), left_right), right);
+        assert_eq!(expected, reduced);
+    }
 
     #[test]
-    fn adjusts_de_brujin_indexes_for_inserted_expression() {}
+    fn adjusts_de_brujin_indexes_for_inserted_expression() {
+        let target = n_abs(3, var(3));
+        let replacement = n_abs(5, var(6));
+        let expression = abs(app(target, replacement));
+
+        let reduced = unwrap_reduced(reduce_once(expression));
+
+        let expected = n_abs(8, var(8));
+        assert_eq!(expected, reduced);
+    }
 
     #[test]
     fn adjusts_de_brujin_indexes_for_subsitution_target() {
-        let expression = abs(abs(abs(app(abs(abs(var(5))), r#const("X")))));
-        let expected = abs(abs(abs(abs(var(4)))));
+        let expression = n_abs(3, app(n_abs(2, var(5)), r#const("X")));
+
         let reduced = unwrap_reduced(reduce_once(expression));
+
+        let expected = n_abs(4, var(4));
         assert_eq!(expected, reduced);
+    }
+
+    #[test]
+    fn subsitutes_at_all_depths() {
+        let expression = app(
+            abs(app(var(1), abs(app(var(2), abs(var(3)))))),
+            r#const("S"),
+        );
+
+        let reduced = unwrap_reduced(reduce_once(expression));
+
+        let expected = app(r#const("S"), abs(app(r#const("S"), abs(r#const("S")))));
+        assert_eq!(expected, reduced);
+    }
+
+    fn n_abs(abstractions: u64, expression: Expression) -> Expression {
+        (0..abstractions).fold(expression, |expr, _| abs(expr))
+    }
+
+    fn id() -> Expression<'static> {
+        abs(var(1))
     }
 
     fn unwrap_reduced(result: ReduceResult) -> Expression {
