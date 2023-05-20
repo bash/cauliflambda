@@ -1,7 +1,7 @@
 use crate::namefree::*;
 use ReduceResult::*;
 
-pub fn reduce_once<'a>(expression: Expression<'a>) -> ReduceResult<'a> {
+pub fn reduce_once(expression: Expression<'_>) -> ReduceResult<'_> {
     accept(expression, &LeftmostOutermostReducer::default())
 }
 
