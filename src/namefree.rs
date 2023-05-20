@@ -71,6 +71,30 @@ impl<'a> fmt::Debug for Expression<'a> {
     }
 }
 
+impl<'a> From<Constant<'a>> for Expression<'a> {
+    fn from(value: Constant<'a>) -> Self {
+        Expression::Const(value)
+    }
+}
+
+impl<'a> From<Variable> for Expression<'a> {
+    fn from(value: Variable) -> Self {
+        Expression::Var(value)
+    }
+}
+
+impl<'a> From<Abstraction<'a>> for Expression<'a> {
+    fn from(value: Abstraction<'a>) -> Self {
+        Expression::Abs(Box::new(value))
+    }
+}
+
+impl<'a> From<Application<'a>> for Expression<'a> {
+    fn from(value: Application<'a>) -> Self {
+        Expression::App(Box::new(value))
+    }
+}
+
 impl<'a> fmt::Display for Expression<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
