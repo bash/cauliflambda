@@ -105,3 +105,27 @@ impl<'a> fmt::Display for Expression<'a> {
         }
     }
 }
+
+pub(crate) trait Visit<'a> {
+    type Output;
+
+    fn constant(&self, constant: Constant<'a>) -> Self::Output;
+
+    fn variable(&self, variable: Variable) -> Self::Output;
+
+    fn abstraction(&self, abstraction: Abstraction<'a>) -> Self::Output;
+
+    fn application(&self, application: Application<'a>) -> Self::Output;
+}
+
+pub(crate) fn accept<'a, V>(expression: Expression<'a>, visitor: &V) -> V::Output
+where
+    V: Visit<'a>,
+{
+    match expression {
+        Expression::Const(c) => visitor.constant(c),
+        Expression::Var(v) => visitor.variable(v),
+        Expression::Abs(a) => visitor.abstraction(*a),
+        Expression::App(a) => visitor.application(*a),
+    }
+}
