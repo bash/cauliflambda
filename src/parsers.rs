@@ -108,7 +108,7 @@ fn variable_list(input: Input) -> IResult<Vec<Identifier>> {
 }
 
 fn lambda(input: Input) -> IResult<char> {
-    one_of("&λ").parse_next(input)
+    one_of("&λ\\").parse_next(input)
 }
 
 fn identifier(input: Input) -> IResult<Identifier> {
@@ -176,7 +176,7 @@ mod tests {
         }
     }
 
-    const ABSTRACTIONS: &[&str] = &["λx.x", "λx.y", "λ x . x", "&x.x"];
+    const ABSTRACTIONS: &[&str] = &["λx.x", "λx.y", "λ x . x", "&x.x", "\\x.x"];
 
     #[test]
     fn parses_abstraction() {
