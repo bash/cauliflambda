@@ -1,8 +1,18 @@
 use crate::namefree::*;
+use std::iter;
 use ReduceResult::*;
 
 pub fn reduce_once(expression: Expression<'_>) -> ReduceResult<'_> {
     accept(expression, &LeftmostOutermostReducer::default())
+}
+
+pub fn reduce_to_normal_form<'a>(
+    expression: Expression<'a>,
+) -> impl Iterator<Item = Expression<'a>> {
+    iter::successors(Some(expression), |expression| {
+        reduce_once(expression.clone()).reduced()
+    })
+    .skip(1)
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
