@@ -52,12 +52,23 @@ impl<'a> fmt::Display for Application<'a> {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 pub enum Expression<'a> {
     Const(Constant<'a>),
     Var(Variable),
     Abs(Box<Abstraction<'a>>),
     App(Box<Application<'a>>),
+}
+
+impl<'a> fmt::Debug for Expression<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Const(c) => c.fmt(f),
+            Self::Var(v) => v.fmt(f),
+            Self::Abs(a) => a.fmt(f),
+            Self::App(a) => a.fmt(f),
+        }
+    }
 }
 
 impl<'a> fmt::Display for Expression<'a> {
