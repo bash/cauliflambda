@@ -1,3 +1,4 @@
+use crate::namefree::Expression;
 use crate::syntax::{Formula, Identifier};
 use crate::{namefree as nf, Diagnostic, DiagnosticSeverity, Label};
 use crate::{Diagnostics, WithDiagnostics};
@@ -32,7 +33,18 @@ fn lower_var<'a>(variable: Identifier<'a>, scope: &Context<'a>) -> nf::Expressio
     scope
         .de_brujin_index(&variable)
         .map(nf::var)
+        .or_else(|| church_numeral_for_var(&variable))
         .unwrap_or_else(|| nf::r#const(variable.value))
+}
+
+fn church_numeral_for_var(variable: &Identifier<'_>) -> Option<Expression<'static>> {
+    variable.value.parse().ok().map(church_numeral)
+}
+
+fn church_numeral(n: u64) -> Expression<'static> {
+    nf::abs(nf::abs(
+        (0..n).fold(nf::var(1), |expr, _| nf::app(nf::var(2), expr)),
+    ))
 }
 
 fn analyze(formula: &Formula, context: &mut Context) {
@@ -92,11 +104,41 @@ impl<'r, 'a> Drop for VariableGuard<'r, 'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::namefree::*;
 
     #[test]
     fn lowers_unbound_variable_as_constant() {
         let expr = lower_formula(parse("X")).value;
         assert!(matches!(expr, nf::Expression::Const(c) if c.0 == "X"));
+    }
+
+    #[test]
+    fn lowers_unbound_natural_numbers_as_church_numerals() {
+        let numerals = [
+            ("0", abs(abs(var(1)))),
+            ("1", abs(abs(app(var(2), var(1))))),
+            (
+                "5",
+                abs(abs(app(
+                    var(2),
+                    app(var(2), app(var(2), app(var(2), app(var(2), var(1))))),
+                ))),
+            ),
+        ];
+
+        for (input, expected) in numerals {
+            let expr = lower_formula(parse(input)).value;
+            assert_eq!(expected, expr);
+        }
+    }
+
+    #[test]
+    fn does_not_bound_natural_numbers_as_church_numerals() {
+        let inputs = ["λ0.0", "λ1.1", "λ5.5"];
+        for input in inputs {
+            let expr = lower_formula(parse(input)).value;
+            assert_eq!(abs(var(1)), expr);
+        }
     }
 
     #[test]

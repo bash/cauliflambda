@@ -47,6 +47,8 @@ fn process_line(input: &str) {
     if let Ok(formula) = unwrap_diagnostics_result("<stdin>", input, parse_formula(input)) {
         let lowered = lower_formula(formula);
         print_diagnostics("<stdin>", input, &lowered.diagnostics);
+        println!("{}", &lowered.value);
+
         let mut count = 0;
         for step in reduce_to_normal_form(lowered.value) {
             count += 1;
