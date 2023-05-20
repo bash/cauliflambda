@@ -42,12 +42,48 @@ pub struct Diagnostics(pub Vec<Diagnostic>);
 pub struct Diagnostic {
     pub severity: DiagnosticSeverity,
     pub message: Cow<'static, str>,
-    pub source: Span,
+    pub labels: Vec<Label>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
+pub struct Label {
+    pub location: Span,
+    pub message: Option<String>,
+}
+
+impl Diagnostic {
+    pub(crate) fn new(severity: DiagnosticSeverity, message: impl Into<Cow<'static, str>>) -> Self {
+        Diagnostic {
+            severity,
+            message: message.into(),
+            labels: Vec::default(),
+        }
+    }
+
+    pub(crate) fn with_label(mut self, label: Label) -> Self {
+        self.labels.push(label);
+        self
+    }
+}
+
+impl Label {
+    pub(crate) fn new(location: Span) -> Self {
+        Label {
+            location,
+            message: None,
+        }
+    }
+
+    pub(crate) fn with_message(mut self, message: impl ToString) -> Self {
+        self.message = Some(message.to_string());
+        self
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum DiagnosticSeverity {
-    Error,
     Warning,
+    Error,
 }

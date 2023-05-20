@@ -31,20 +31,21 @@ fn to_diagnostics(error: Error) -> Diagnostics {
         .first()
         .expect("At least one error was expected");
     let location = input.location();
-    Diagnostics(vec![Diagnostic {
-        severity: DiagnosticSeverity::Error,
-        message: error_to_message(error).into(),
-        source: Span {
-            start: location,
-            end: location,
-        },
-    }])
+    let span = Span {
+        start: location,
+        end: location,
+    };
+    Diagnostics(vec![Diagnostic::new(
+        DiagnosticSeverity::Error,
+        error_to_message(error),
+    )
+    .with_label(Label::new(span))])
 }
 
 fn error_to_message(error: &VerboseErrorKind) -> &'static str {
     match error {
         VerboseErrorKind::Context(context) => context,
-        VerboseErrorKind::Winnow(_) => "Unexpected input",
+        VerboseErrorKind::Winnow(_) => "unexpected input",
     }
 }
 
@@ -273,7 +274,9 @@ mod tests {
         let diagnostics = parse_formula(input).unwrap_err().0;
 
         assert_eq!(1, diagnostics.len());
-        assert_eq!(expected_span, diagnostics.first().unwrap().source);
+        let diagnostic = diagnostics.first().unwrap();
+        assert_eq!(1, diagnostic.labels.len());
+        assert_eq!(expected_span, diagnostic.labels.first().unwrap().location);
     }
 
     fn parse<'a, O>(input: &'a str, mut parser: impl Parser<'a, O>) -> O {
