@@ -1,12 +1,20 @@
-use crate::namefree as nf;
 use crate::syntax::{Formula, Identifier};
+use crate::{namefree as nf, Diagnostic, DiagnosticSeverity, Label};
+use crate::{Diagnostics, WithDiagnostics};
 
 /// Lowers a formula to its namefree equivalent.
-pub fn lower_formula(formula: Formula<'_>) -> nf::Expression<'_> {
-    lower(formula, &mut Context::default())
+pub fn lower_formula(formula: Formula<'_>) -> WithDiagnostics<nf::Expression<'_>> {
+    let mut context = Context::default();
+    let expression = lower(formula, &mut context);
+    WithDiagnostics {
+        value: expression,
+        diagnostics: context.diagnostics,
+    }
 }
 
 fn lower<'a>(formula: Formula<'a>, context: &mut Context<'a>) -> nf::Expression<'a> {
+    analyze(&formula, context);
+
     match formula {
         Formula::Abs(abstraction) => {
             let context = context.push(abstraction.variable.clone());
@@ -27,15 +35,40 @@ fn lower_var<'a>(variable: Identifier<'a>, scope: &Context<'a>) -> nf::Expressio
         .unwrap_or_else(|| nf::r#const(variable.value))
 }
 
+fn analyze(formula: &Formula, context: &mut Context) {
+    if let Formula::Abs(abstraction) = formula {
+        if let Formula::App(application) = &abstraction.formula {
+            if let Formula::Var(variable) = &application.right {
+                if variable.value == abstraction.variable.value {
+                    context.emit(
+                        Diagnostic::new(DiagnosticSeverity::Warning, "unnecessary abstraction")
+                            .with_label(Label::new(abstraction.variable.span.clone()))
+                            .with_label(
+                                Label::new(variable.span.clone()).with_message(
+                                    "help: remove the abstraction and this application",
+                                ),
+                            ),
+                    );
+                }
+            }
+        }
+    }
+}
+
 #[derive(Default, Debug)]
 struct Context<'a> {
     variables: Vec<Identifier<'a>>,
+    diagnostics: Diagnostics,
 }
 
 impl<'a> Context<'a> {
     fn push<'s>(&'s mut self, identifier: Identifier<'a>) -> VariableGuard<'s, 'a> {
         self.variables.push(identifier);
         VariableGuard(self)
+    }
+
+    fn emit(&mut self, diagnostic: Diagnostic) {
+        self.diagnostics.0.push(diagnostic);
     }
 
     fn de_brujin_index(&self, identifier: &Identifier<'a>) -> Option<usize> {
@@ -62,13 +95,13 @@ mod tests {
 
     #[test]
     fn lowers_unbound_variable_as_constant() {
-        let expr = lower_formula(parse("X"));
+        let expr = lower_formula(parse("X")).value;
         assert!(matches!(expr, nf::Expression::Const(c) if c.0 == "X"));
     }
 
     #[test]
     fn lowers_application() {
-        let expr = lower_formula(parse("A B"));
+        let expr = lower_formula(parse("A B")).value;
         assert!(
             matches!(&expr, nf::Expression::App(a) if matches!(&a.0, nf::Expression::Const(c) if c.0 == "A"))
         );
