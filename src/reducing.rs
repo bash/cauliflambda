@@ -1,14 +1,12 @@
 use crate::namefree::*;
-use std::iter;
+use std::{cmp::Ordering, iter};
 use ReduceResult::*;
 
 pub fn reduce_once(expression: Expression<'_>) -> ReduceResult<'_> {
     accept(expression, &LeftmostOutermostReducer::default())
 }
 
-pub fn reduce_to_normal_form<'a>(
-    expression: Expression<'a>,
-) -> impl Iterator<Item = Expression<'a>> {
+pub fn reduce_to_normal_form(expression: Expression<'_>) -> impl Iterator<Item = Expression<'_>> {
     iter::successors(Some(expression), |expression| {
         reduce_once(expression.clone()).reduced()
     })
@@ -113,12 +111,10 @@ impl<'r, 'a> Visit<'a> for Substituter<'r, 'a> {
     }
 
     fn variable(&self, variable: Variable) -> Self::Output {
-        if variable.0 == self.depth {
-            insert(self.replacement.clone(), self.depth - 1)
-        } else if variable.0 > self.depth {
-            Variable(variable.0 - 1).into()
-        } else {
-            variable.into()
+        match variable.0.cmp(&self.depth) {
+            Ordering::Less => variable.into(),
+            Ordering::Equal => insert(self.replacement.clone(), self.depth - 1),
+            Ordering::Greater => Variable(variable.0 - 1).into(),
         }
     }
 
