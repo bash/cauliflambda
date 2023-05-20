@@ -1,7 +1,7 @@
-use cauliflambda::Diagnostic;
+use cauliflambda::{Diagnostic, DiagnosticSeverity};
 use cauliflambda::{Diagnostics, DiagnosticsResult};
-use codespan_reporting::diagnostic::Diagnostic as ReportedDiagnostic;
 use codespan_reporting::diagnostic::Label;
+use codespan_reporting::diagnostic::{Diagnostic as ReportedDiagnostic, Severity};
 use codespan_reporting::files::SimpleFiles;
 use codespan_reporting::term;
 use codespan_reporting::term::termcolor::{ColorChoice, StandardStream};
@@ -23,7 +23,7 @@ pub fn unwrap_diagnostics_result<O>(
     }
 }
 
-fn print_diagnostics(file_name: &str, input: &str, diagnostics: &Diagnostics) {
+pub fn print_diagnostics(file_name: &str, input: &str, diagnostics: &Diagnostics) {
     let mut files = SimpleFiles::new();
     let file_id = files.add(file_name, input);
 
@@ -43,7 +43,24 @@ fn term_config() -> term::Config {
 }
 
 fn to_reported_diagnostic(file_id: usize, diagnostic: &Diagnostic) -> ReportedDiagnostic<usize> {
-    ReportedDiagnostic::error()
+    ReportedDiagnostic::new(to_severity(diagnostic.severity))
         .with_message(diagnostic.message.as_ref())
-        .with_labels(vec![Label::primary(file_id, diagnostic.source.clone())])
+        .with_labels(
+            diagnostic
+                .labels
+                .iter()
+                .map(|label| {
+                    Label::primary(file_id, label.location.clone())
+                        .with_message(label.message.to_owned().unwrap_or_default())
+                })
+                .collect(),
+        )
+}
+
+fn to_severity(severity: DiagnosticSeverity) -> Severity {
+    match severity {
+        DiagnosticSeverity::Error => Severity::Error,
+        DiagnosticSeverity::Warning => Severity::Warning,
+        _ => Severity::Bug,
+    }
 }
