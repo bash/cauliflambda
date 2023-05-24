@@ -8,3 +8,4 @@ pub mod namefree;
 pub use diagnostics::*;
 mod reducing;
 pub use reducing::*;
+pub mod evaluation;
