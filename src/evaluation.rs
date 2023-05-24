@@ -84,7 +84,6 @@ impl<'a> Variable<'a> {
         }
     }
 
-    #[must_use]
     pub fn with_disambiguator(self, disambiguator: usize) -> Self {
         Variable {
             disambiguator,
