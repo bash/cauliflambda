@@ -1,5 +1,8 @@
 use std::fmt;
 
+mod rename;
+pub use rename::*;
+
 pub fn var(name: &str) -> Term<'_> {
     Variable::new(name).into()
 }
