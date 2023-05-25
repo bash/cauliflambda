@@ -2,6 +2,8 @@ use std::fmt;
 
 mod rename;
 pub use rename::*;
+mod evaluate;
+pub use evaluate::*;
 
 pub fn var(name: &str) -> Term<'_> {
     Variable::new(name).into()
