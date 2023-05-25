@@ -1,7 +1,7 @@
 use super::*;
 use EvaluationResult::*;
 
-/// Reduces an expression using the "leftmost outermost" aka. "normal order" strategy.
+/// Reduces an expression using normal order (also known as leftmost outermost).
 pub fn evaluate_once(term: Term<'_>) -> EvaluationResult<'_> {
     match term {
         term @ Term::Var(_) => Complete(term),
