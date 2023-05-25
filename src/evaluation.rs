@@ -30,11 +30,21 @@ pub enum EvaluationStepKind {
     Beta,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 pub enum Term<'a> {
     Var(Variable<'a>),
     Abs(Box<Abstraction<'a>>),
     App(Box<Application<'a>>),
+}
+
+impl<'a> fmt::Debug for Term<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Term::Var(v) => v.fmt(f),
+            Term::Abs(a) => a.fmt(f),
+            Term::App(a) => a.fmt(f),
+        }
+    }
 }
 
 impl<'a> From<Variable<'a>> for Term<'a> {
