@@ -1,6 +1,7 @@
 use std::fmt;
 
 mod rename;
+use fmtastic::Subscript;
 pub use rename::*;
 mod evaluate;
 pub use evaluate::*;
@@ -113,8 +114,7 @@ impl<'a> From<&'a str> for Variable<'a> {
 impl<'a> fmt::Display for Variable<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.disambiguator > 0 {
-            // TODO: use subscript
-            write!(f, "{}_{}", self.name, self.disambiguator)
+            write!(f, "{}{}", self.name, Subscript(self.disambiguator))
         } else {
             write!(f, "{}", self.name)
         }

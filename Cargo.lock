@@ -12,6 +12,7 @@ checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 name = "cauliflambda"
 version = "0.1.0"
 dependencies = [
+ "fmtastic",
  "trait-set",
  "unicode-xid",
  "winnow",
@@ -126,6 +127,11 @@ dependencies = [
  "rustix",
  "windows-sys",
 ]
+
+[[package]]
+name = "fmtastic"
+version = "0.1.0"
+source = "git+https://github.com/bash/fmtastic.git?branch=main#7a035a0d91bc55d8434cc98329dacd91ddaa4fe1"
 
 [[package]]
 name = "getrandom"
