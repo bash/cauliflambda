@@ -9,6 +9,7 @@ edition = "2021"
 trait-set = "0.3.0"
 unicode-xid = "0.2.4"
 winnow = "0.4.6"
+fmtastic = { git = "https://github.com/bash/fmtastic.git", branch = "main" }
 
 [workspace]
 members = [
