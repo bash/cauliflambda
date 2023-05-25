@@ -1,4 +1,4 @@
-use std::fmt;
+use std::fmt::{self, Write};
 
 mod rename;
 use fmtastic::Subscript;
@@ -139,7 +139,7 @@ impl<'a> Abstraction<'a> {
 
 impl<'a> fmt::Display for Abstraction<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "(λ{}.{})", self.variable, self.term)
+        write!(f, "λ{}.{}", self.variable, self.term)
     }
 }
 
@@ -161,6 +161,44 @@ impl<'a> Application<'a> {
 
 impl<'a> fmt::Display for Application<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "({} {})", self.left, self.right)
+        with_parenthesis(matches!(self.left, Term::Abs(_)), f, |f| self.left.fmt(f))?;
+        f.write_char(' ')?;
+        with_parenthesis(matches!(self.right, Term::App(_)), f, |f| self.right.fmt(f))
+    }
+}
+
+fn with_parenthesis(
+    condition: bool,
+    fmt: &mut fmt::Formatter<'_>,
+    f: impl FnOnce(&mut fmt::Formatter<'_>) -> fmt::Result,
+) -> fmt::Result {
+    if condition {
+        fmt.write_char('(')?;
+    }
+    f(fmt)?;
+    if condition {
+        fmt.write_char(')')?;
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn only_adds_necessary_parenthesis() {
+        let terms = [
+            ("x (y z)", app(var("x"), app(var("y"), var("z")))),
+            ("x y z", app(app(var("x"), var("y")), var("z"))),
+            ("λx.λy.λz.z", abs("x", abs("y", abs("z", var("z"))))),
+            ("λx.x y", abs("x", app(var("x"), var("y")))),
+            ("X λx.x y", app(var("X"), abs("x", app(var("x"), var("y"))))),
+            ("(λx.x) y", app(abs("x", var("x")), var("y"))),
+        ];
+
+        for (syntax, term) in terms {
+            assert_eq!(syntax, term.to_string());
+        }
     }
 }
