@@ -5,6 +5,8 @@ use fmtastic::Subscript;
 pub use rename::*;
 mod evaluate;
 pub use evaluate::*;
+mod free;
+pub use free::*;
 
 pub fn var(name: &str) -> Term<'_> {
     Variable::new(name).into()
@@ -82,7 +84,7 @@ impl<'a> fmt::Display for Term<'a> {
 /// is incremented during evaluation to avoid conflicting names.
 ///
 /// Example: `x`.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[non_exhaustive]
 pub struct Variable<'a> {
     pub name: &'a str,
