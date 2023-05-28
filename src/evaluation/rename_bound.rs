@@ -81,13 +81,13 @@ mod tests {
                 &["x".into()],
             ),
             (
-                abs(("x", 1), abs(("y", 1), abs(("z", 1), var("CONST")))),
-                abs("x", abs("y", abs("z", var("CONST")))),
+                nested_abs([("x", 1), ("y", 1), ("z", 1)], var("free")),
+                nested_abs(["x", "y", "z"], var("free")),
                 &["x".into(), "y".into(), "z".into()],
             ),
             (
-                abs("x", abs("y", abs(("z", 1), var_with("z", 1)))),
-                abs("x", abs("y", abs("z", var("z")))),
+                nested_abs([("x", 0), ("y", 0), ("z", 1)], var_with("z", 1)),
+                nested_abs(["x", "y", "z"], var("z")),
                 &["z".into()],
             ),
         ] {

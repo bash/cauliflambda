@@ -35,6 +35,18 @@ pub fn abs<'a>(variable: impl Into<Variable<'a>>, term: impl Into<Term<'a>>) -> 
     Term::Abs(Box::new(Abstraction::new(variable.into(), term.into())))
 }
 
+#[cfg(test)]
+fn nested_abs<'a, I, V>(variables: I, term: Term<'a>) -> Term<'a>
+where
+    V: Into<Variable<'a>>,
+    I: IntoIterator<Item = V>,
+    I::IntoIter: DoubleEndedIterator,
+{
+    variables
+        .into_iter()
+        .rfold(term, |term, v| abs(v.into(), term))
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum EvaluationResult<'a> {
     /// One beta reduction step has been applied.
