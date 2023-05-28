@@ -10,6 +10,11 @@ pub fn free_variables<'a>(term: &'a Term) -> Variables<'a> {
     free
 }
 
+pub fn is_free_in<'a>(term: &'a Term) -> impl Fn(&Variable) -> bool + Clone + 'a {
+    let free = free_variables(term);
+    move |variable| free.contains(variable)
+}
+
 fn find_free_variables<'a>(term: &'a Term, bound: &mut Variables<'a>, free: &mut Variables<'a>) {
     match term {
         Term::Var(variable) => {
