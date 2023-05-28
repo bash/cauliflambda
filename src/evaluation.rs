@@ -1,3 +1,4 @@
+use crate::syntax;
 use std::fmt::{self, Write};
 
 #[macro_use]
@@ -43,6 +44,16 @@ pub enum Term<'a> {
     Var(Variable<'a>),
     Abs(Box<Abstraction<'a>>),
     App(Box<Application<'a>>),
+}
+
+impl<'a> From<syntax::Formula<'a>> for Term<'a> {
+    fn from(value: syntax::Formula<'a>) -> Self {
+        match value {
+            syntax::Formula::Abs(abs) => Term::Abs(Box::new((*abs).into())),
+            syntax::Formula::App(app) => Term::App(Box::new((*app).into())),
+            syntax::Formula::Var(var) => Term::Var(var.into()),
+        }
+    }
 }
 
 impl<'a> fmt::Debug for Term<'a> {
@@ -110,6 +121,12 @@ impl<'a> Variable<'a> {
     }
 }
 
+impl<'a> From<syntax::Identifier<'a>> for Variable<'a> {
+    fn from(value: syntax::Identifier<'a>) -> Self {
+        Self::new(value.value)
+    }
+}
+
 impl<'a> From<&'a str> for Variable<'a> {
     fn from(name: &'a str) -> Self {
         Variable::new(name)
@@ -142,6 +159,12 @@ impl<'a> Abstraction<'a> {
     }
 }
 
+impl<'a> From<syntax::Abstraction<'a>> for Abstraction<'a> {
+    fn from(value: syntax::Abstraction<'a>) -> Self {
+        Self::new(value.variable.into(), value.formula.into())
+    }
+}
+
 impl<'a> fmt::Display for Abstraction<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "λ{}.{}", self.variable, self.term)
@@ -161,6 +184,12 @@ pub struct Application<'a> {
 impl<'a> Application<'a> {
     pub fn new(left: Term<'a>, right: Term<'a>) -> Self {
         Application { left, right }
+    }
+}
+
+impl<'a> From<syntax::Application<'a>> for Application<'a> {
+    fn from(value: syntax::Application<'a>) -> Self {
+        Self::new(value.left.into(), value.right.into())
     }
 }
 
