@@ -21,25 +21,8 @@ fn recurse<'a>(left: Term<'a>, right: Term<'a>) -> EvaluationResult<'a> {
 }
 
 fn substitute_or_rename_abs<'a>(haystack: Term<'a>, needle: Variable, term: &Term<'a>) -> Term<'a> {
-    let fixed = rename_abs(haystack, &free_variables(term));
-    substitute(fixed, needle, term)
-}
-
-fn rename_abs<'a>(term: Term<'a>, free: &Variables) -> Term<'a> {
-    match term {
-        Abs(a) if free.contains(&a.variable) => {
-            let free_in_abs = free_variables(&a.term);
-            let new_variable = new_variable(a.variable, |v| {
-                !free_in_abs.contains(v) && !free.contains(v)
-            });
-            abs(
-                new_variable,
-                rename_abs(rename(a.variable, new_variable, a.term), free),
-            )
-        }
-        App(a) => app(rename_abs(a.left, free), rename_abs(a.right, free)),
-        term => term,
-    }
+    let is_free = is_free_in(&term);
+    substitute(rename_bound(haystack, |v| !is_free(v)), needle, term)
 }
 
 fn substitute<'a>(haystack: Term<'a>, needle: Variable, replacement: &Term<'a>) -> Term<'a> {
@@ -53,14 +36,6 @@ fn substitute<'a>(haystack: Term<'a>, needle: Variable, replacement: &Term<'a>) 
         ),
         term => term,
     }
-}
-
-fn new_variable(old: Variable, is_available: impl Fn(&Variable) -> bool) -> Variable {
-    (1..)
-        .filter(|d| *d != old.disambiguator)
-        .map(|d| Variable::new(old.name).with_disambiguator(d))
-        .find(is_available)
-        .expect("No more disambiguators left, what are you doing?")
 }
 
 #[cfg(test)]

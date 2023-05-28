@@ -13,9 +13,16 @@ mod free;
 pub use free::*;
 mod beta;
 pub use beta::*;
+mod rename_bound;
+pub use rename_bound::*;
 
 pub fn var(name: &str) -> Term<'_> {
     Variable::new(name).into()
+}
+
+#[cfg(test)]
+pub fn var_with(name: &str, disambiguator: usize) -> Term<'_> {
+    Variable::new(name).with_disambiguator(disambiguator).into()
 }
 
 pub fn app<'a>(left: impl Into<Term<'a>>, right: impl Into<Term<'a>>) -> Term<'a> {
@@ -144,6 +151,12 @@ impl<'a> From<syntax::Identifier<'a>> for Variable<'a> {
 impl<'a> From<&'a str> for Variable<'a> {
     fn from(name: &'a str) -> Self {
         Variable::new(name)
+    }
+}
+
+impl<'a> From<(&'a str, usize)> for Variable<'a> {
+    fn from((name, disambiguator): (&'a str, usize)) -> Self {
+        Variable::new(name).with_disambiguator(disambiguator)
     }
 }
 
