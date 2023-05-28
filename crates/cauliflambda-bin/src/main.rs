@@ -1,4 +1,5 @@
-use cauliflambda::{lower_formula, parse_formula, reduce_to_normal_form};
+use cauliflambda::evaluation::{self, evaluate};
+use cauliflambda::parse_formula;
 use diagnostics::unwrap_diagnostics_result;
 use repl::repl;
 use std::env;
@@ -6,8 +7,6 @@ use std::error::Error;
 use std::fs::read_to_string;
 use std::path::Path;
 use std::process::exit;
-
-use crate::diagnostics::print_diagnostics;
 
 mod diagnostics;
 mod repl;
@@ -30,11 +29,10 @@ fn evaluate_file(path: &Path) -> Result<(), Box<dyn Error>> {
     let input = read_to_string(path)?;
     let formula = unwrap_diagnostics_result(&path.to_string_lossy(), &input, parse_formula(&input))
         .unwrap_or_else(|_| exit(1));
-    let lowered = lower_formula(formula);
-    print_diagnostics(&path.to_string_lossy(), &input, &lowered.diagnostics);
-
+    let term: evaluation::Term = formula.into();
+    println!("{}", term);
     let mut count = 0;
-    for step in reduce_to_normal_form(lowered.value) {
+    for step in evaluate(term) {
         count += 1;
         println!("->> {step}");
     }

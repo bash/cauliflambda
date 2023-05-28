@@ -1,5 +1,6 @@
-use crate::diagnostics::{print_diagnostics, unwrap_diagnostics_result};
-use cauliflambda::{lower_formula, parse_formula, reduce_to_normal_form};
+use crate::diagnostics::unwrap_diagnostics_result;
+use cauliflambda::evaluation::evaluate;
+use cauliflambda::parse_formula;
 use rustyline::error::ReadlineError;
 use rustyline::validate::MatchingBracketValidator;
 use rustyline::{Completer, Editor, Helper, Highlighter, Hinter, Validator};
@@ -45,12 +46,8 @@ impl ReplHelper {
 
 fn process_line(input: &str) {
     if let Ok(formula) = unwrap_diagnostics_result("<stdin>", input, parse_formula(input)) {
-        let lowered = lower_formula(formula);
-        print_diagnostics("<stdin>", input, &lowered.diagnostics);
-        println!("{}", &lowered.value);
-
         let mut count = 0;
-        for step in reduce_to_normal_form(lowered.value) {
+        for step in evaluate(formula.into()) {
             count += 1;
             println!("->> {step}");
         }
