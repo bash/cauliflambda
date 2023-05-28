@@ -1,17 +1,13 @@
 use super::*;
+use Term::*;
 
 /// Renames a free variable in the given term.
 pub fn rename<'a>(old: Variable<'a>, new: Variable<'a>, term: Term<'a>) -> Term<'a> {
     match term {
-        Term::Var(var) if var == old => new.into(),
-        term @ Term::Var(_) => term,
-        Term::Abs(abs) if abs.variable != old => {
-            Abstraction::new(abs.variable, rename(old, new, abs.term)).into()
-        }
-        term @ Term::Abs(_) => term,
-        Term::App(app) => {
-            Application::new(rename(old, new, app.left), rename(old, new, app.right)).into()
-        }
+        Var(var) if var == old => new.into(),
+        Abs! { variable, term } if variable != old => abs(variable, rename(old, new, term)),
+        App! { left, right } => app(rename(old, new, left), rename(old, new, right)),
+        term => term,
     }
 }
 

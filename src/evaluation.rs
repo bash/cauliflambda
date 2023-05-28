@@ -1,5 +1,8 @@
 use std::fmt::{self, Write};
 
+#[macro_use]
+mod macros;
+
 mod rename;
 use fmtastic::Subscript;
 pub use rename::*;
