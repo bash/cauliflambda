@@ -3,7 +3,7 @@ use std::{cmp::Ordering, iter};
 use ReduceResult::*;
 
 pub fn reduce_once(expression: Expression<'_>) -> ReduceResult<'_> {
-    accept(expression, &LeftmostOutermostReducer::default())
+    accept(expression, &LeftmostOutermostReducer)
 }
 
 pub fn reduce_to_normal_form(expression: Expression<'_>) -> impl Iterator<Item = Expression<'_>> {
