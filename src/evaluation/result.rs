@@ -17,7 +17,7 @@ impl<'a> TermResult<'a> {
         }
     }
 
-    pub fn map(self, f: impl FnOnce(Term<'a>) -> Term<'a>) -> Self {
+    pub(crate) fn map(self, f: impl FnOnce(Term<'a>) -> Term<'a>) -> Self {
         match self {
             Modified(term) => Modified(f(term)),
             Original(term) => Original(f(term)),
