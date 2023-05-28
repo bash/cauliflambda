@@ -1,23 +1,27 @@
 use super::*;
 use trait_set::trait_set;
+use Term::*;
+use TermResult::*;
 
 trait_set! {
     pub trait RenameBoundPredicate = Fn(&Variable) -> bool + Clone;
 }
 
 /// Renames all bound variables in the given term to fit a given predicate.
-pub fn rename_bound(term: Term<'_>, predicate: impl RenameBoundPredicate) -> Term<'_> {
+pub fn rename_bound(term: Term<'_>, predicate: impl RenameBoundPredicate) -> TermResult<'_> {
     match term {
         Abs! { variable, term } if !predicate(&variable) => {
             let new_variable = new_variable_for_term(variable, &term, predicate.clone());
             let renamed = rename(variable, new_variable, term);
-            abs(new_variable, rename_bound(renamed, predicate))
+            Modified(abs(new_variable, rename_bound(renamed, predicate).term()))
         }
-        App! { left, right } => app(
+        Abs! { variable, term } => rename_bound(term, predicate).map(|term| abs(variable, term)),
+        App! { left, right } => TermResult::map2(
             rename_bound(left, predicate.clone()),
             rename_bound(right, predicate),
+            app,
         ),
-        term => term,
+        term @ Var(_) => Original(term),
     }
 }
 
@@ -46,13 +50,13 @@ mod tests {
     #[test]
     fn ignores_bound_variables_that_satisfy_predicate() {
         let term = abs("x", var("x"));
-        assert_eq!(term, rename_bound(term.clone(), |_| true));
+        assert_eq!(Original(term.clone()), rename_bound(term, |_| true));
     }
 
     #[test]
     fn ignores_free_variables_that_do_not_satisfy_predicate() {
         let term = var("x");
-        assert_eq!(term, rename_bound(term.clone(), |_| false));
+        assert_eq!(Original(term.clone()), rename_bound(term, |_| false));
     }
 
     #[test]
@@ -81,8 +85,16 @@ mod tests {
                 abs("x", abs("y", abs("z", var("CONST")))),
                 &["x".into(), "y".into(), "z".into()],
             ),
+            (
+                abs("x", abs("y", abs(("z", 1), var_with("z", 1)))),
+                abs("x", abs("y", abs("z", var("z")))),
+                &["z".into()],
+            ),
         ] {
-            assert_eq!(expected_term, rename_bound(term, |v| !taken.contains(v)));
+            assert_eq!(
+                Modified(expected_term),
+                rename_bound(term, |v| !taken.contains(v))
+            );
         }
     }
 
@@ -90,13 +102,16 @@ mod tests {
     fn skips_free_variables_in_abstraction_term_when_renaming() {
         let expected = abs(("x", 2), app(var_with("x", 2), var_with("x", 1)));
         let term = abs("x", app(var("x"), var_with("x", 1)));
-        assert_eq!(expected, rename_bound(term, |v| v != &Variable::new("x")));
+        assert_eq!(
+            Modified(expected),
+            rename_bound(term, |v| v != &Variable::new("x"))
+        );
     }
 
     #[test]
     #[should_panic(expected = "No more disambiguators left")]
     fn panics_when_all_disambiguators_are_used_up() {
         let term = abs("x", var("x"));
-        assert_eq!(term, rename_bound(term.clone(), |_| false));
+        rename_bound(term.clone(), |_| false);
     }
 }

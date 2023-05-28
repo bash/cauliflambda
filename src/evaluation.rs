@@ -15,6 +15,8 @@ mod beta;
 pub use beta::*;
 mod rename_bound;
 pub use rename_bound::*;
+mod result;
+pub use result::*;
 
 pub fn var(name: &str) -> Term<'_> {
     Variable::new(name).into()
