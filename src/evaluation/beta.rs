@@ -55,15 +55,4 @@ mod tests {
             assert!(matches!(result, Complete(_)));
         }
     }
-
-    fn nested_abs<'a, I, V>(variables: I, term: Term<'a>) -> Term<'a>
-    where
-        V: Into<Variable<'a>>,
-        I: IntoIterator<Item = V>,
-        I::IntoIter: DoubleEndedIterator,
-    {
-        variables
-            .into_iter()
-            .rfold(term, |term, v| abs(v.into(), term))
-    }
 }
