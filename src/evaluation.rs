@@ -11,6 +11,8 @@ mod evaluate;
 pub use evaluate::*;
 mod free;
 pub use free::*;
+mod beta;
+pub use beta::*;
 
 pub fn var(name: &str) -> Term<'_> {
     Variable::new(name).into()
@@ -28,15 +30,27 @@ pub fn abs<'a>(variable: impl Into<Variable<'a>>, term: impl Into<Term<'a>>) -> 
 pub enum EvaluationResult<'a> {
     /// One beta reduction step has been applied.
     /// The expression may or may not be reduced further.
-    Step(EvaluationStepKind, Term<'a>),
+    Beta(Term<'a>),
     /// The expression can't be reduced further
     Complete(Term<'a>),
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum EvaluationStepKind {
-    Alpha,
-    Beta,
+impl<'a> EvaluationResult<'a> {
+    fn map(self, f: impl FnOnce(Term<'a>) -> Term<'a>) -> Self {
+        use EvaluationResult::*;
+        match self {
+            Beta(term) => Beta(f(term)),
+            Complete(term) => Complete(f(term)),
+        }
+    }
+
+    fn beta(self) -> Option<Term<'a>> {
+        if let EvaluationResult::Beta(term) = self {
+            Some(term)
+        } else {
+            None
+        }
+    }
 }
 
 #[derive(Clone, PartialEq, Eq)]
@@ -197,7 +211,9 @@ impl<'a> fmt::Display for Application<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         with_parenthesis(matches!(self.left, Term::Abs(_)), f, |f| self.left.fmt(f))?;
         f.write_char(' ')?;
-        with_parenthesis(matches!(self.right, Term::App(_)), f, |f| self.right.fmt(f))
+        with_parenthesis(matches!(self.right, Term::App(_) | Term::Abs(_)), f, |f| {
+            self.right.fmt(f)
+        })
     }
 }
 
@@ -227,7 +243,10 @@ mod tests {
             ("x y z", app(app(var("x"), var("y")), var("z"))),
             ("λx.λy.λz.z", abs("x", abs("y", abs("z", var("z"))))),
             ("λx.x y", abs("x", app(var("x"), var("y")))),
-            ("X λx.x y", app(var("X"), abs("x", app(var("x"), var("y"))))),
+            (
+                "X (λx.x y)",
+                app(var("X"), abs("x", app(var("x"), var("y")))),
+            ),
             ("(λx.x) y", app(abs("x", var("x")), var("y"))),
         ];
 

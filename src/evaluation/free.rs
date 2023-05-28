@@ -1,7 +1,7 @@
 use super::*;
 use std::collections::HashSet;
 
-type Variables<'a> = HashSet<Variable<'a>>;
+pub type Variables<'a> = HashSet<Variable<'a>>;
 
 /// Finds the free variables of a given term. Variables are free if they're not bound by an abstraction.
 pub fn free_variables<'a>(term: &'a Term) -> Variables<'a> {
