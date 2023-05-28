@@ -1,3 +1,5 @@
+#![feature(box_patterns)]
+
 mod parsers;
 pub mod syntax;
 pub use parsers::*;
