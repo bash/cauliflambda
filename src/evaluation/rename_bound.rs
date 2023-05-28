@@ -6,7 +6,7 @@ trait_set! {
 }
 
 /// Renames all bound variables in the given term to fit a given predicate.
-pub fn rename_bound<'a>(term: Term<'a>, predicate: impl RenameBoundPredicate) -> Term<'a> {
+pub fn rename_bound(term: Term<'_>, predicate: impl RenameBoundPredicate) -> Term<'_> {
     match term {
         Abs! { variable, term } if !predicate(&variable) => {
             let new_variable = new_variable_for_term(variable, &term, predicate.clone());

@@ -21,7 +21,7 @@ fn recurse<'a>(left: Term<'a>, right: Term<'a>) -> EvaluationResult<'a> {
 }
 
 fn substitute_or_rename_abs<'a>(haystack: Term<'a>, needle: Variable, term: &Term<'a>) -> Term<'a> {
-    let is_free = is_free_in(&term);
+    let is_free = is_free_in(term);
     substitute(rename_bound(haystack, |v| !is_free(v)), needle, term)
 }
 
