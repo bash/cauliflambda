@@ -17,6 +17,8 @@ mod rename_bound;
 pub use rename_bound::*;
 mod result;
 pub use result::*;
+mod substitute;
+pub use substitute::*;
 
 pub fn var(name: &str) -> Term<'_> {
     Variable::new(name).into()
