@@ -5,7 +5,7 @@ use Term::*;
 pub fn reduce<'a>(term: impl Into<Term<'a>>) -> EvaluationResult<'a> {
     match term.into() {
         App! { left: Abs(abs), right } => {
-            Beta(substitute_or_rename_abs(abs.term, abs.variable, &right))
+            Beta(rename_and_substitute(abs.term, abs.variable, &right))
         }
         App! { left, right } => recurse(left, right),
         Abs! { variable, term } => reduce(term).map(|term| abs(variable, term)),
@@ -20,22 +20,9 @@ fn recurse<'a>(left: Term<'a>, right: Term<'a>) -> EvaluationResult<'a> {
     }
 }
 
-fn substitute_or_rename_abs<'a>(haystack: Term<'a>, needle: Variable, term: &Term<'a>) -> Term<'a> {
+fn rename_and_substitute<'a>(haystack: Term<'a>, needle: Variable, term: &Term<'a>) -> Term<'a> {
     let is_free = is_free_in(term);
-    substitute(rename_bound(haystack, |v| !is_free(v)).term(), needle, term)
-}
-
-fn substitute<'a>(haystack: Term<'a>, needle: Variable, replacement: &Term<'a>) -> Term<'a> {
-    match haystack {
-        Var(v) if v == needle => replacement.clone(),
-        Abs(a) if a.variable == needle => Abs(a),
-        Abs! { variable, term } => abs(variable, substitute(term, needle, replacement)),
-        App! { left, right } => app(
-            substitute(left, needle, replacement),
-            substitute(right, needle, replacement),
-        ),
-        term => term,
-    }
+    substitute(needle, term, rename_bound(haystack, |v| !is_free(v)).term())
 }
 
 #[cfg(test)]
