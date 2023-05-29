@@ -1,12 +1,13 @@
 use super::*;
 use std::collections::HashSet;
+use std::default::default;
 use Term::*;
 
 pub type Variables<'a> = HashSet<Variable<'a>>;
 
 /// Finds the free variables of a given term. Variables are free if they're not bound by an abstraction.
 pub fn free_variables<'a>(term: &'a Term) -> Variables<'a> {
-    let (mut bound, mut free) = Default::default();
+    let (mut bound, mut free) = default();
     find_free_variables(term, &mut bound, &mut free);
     free
 }

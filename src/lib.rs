@@ -1,4 +1,5 @@
 #![feature(box_patterns)]
+#![feature(default_free_fn)]
 
 mod parsers;
 pub mod syntax;
