@@ -1,5 +1,6 @@
 use super::*;
 use std::collections::HashSet;
+use Term::*;
 
 pub type Variables<'a> = HashSet<Variable<'a>>;
 
@@ -17,21 +18,21 @@ pub fn is_free_in<'a>(term: &'a Term) -> impl Fn(&Variable) -> bool + Clone + 'a
 
 fn find_free_variables<'a>(term: &'a Term, bound: &mut Variables<'a>, free: &mut Variables<'a>) {
     match term {
-        Term::Var(variable) => {
+        Var(variable) => {
             if !bound.contains(variable) {
                 free.insert(*variable);
             }
         }
-        Term::Abs(abstraction) => {
-            let inserted = bound.insert(abstraction.variable);
-            find_free_variables(&abstraction.term, bound, free);
+        Abs! { variable, term } => {
+            let inserted = bound.insert(*variable);
+            find_free_variables(term, bound, free);
             if inserted {
-                bound.remove(&abstraction.variable);
+                bound.remove(variable);
             }
         }
-        Term::App(application) => {
-            find_free_variables(&application.left, bound, free);
-            find_free_variables(&application.right, bound, free);
+        App! { left, right } => {
+            find_free_variables(left, bound, free);
+            find_free_variables(right, bound, free);
         }
     }
 }
