@@ -11,5 +11,5 @@ fn seed_step(term: Term<'_>) -> Option<Step<'_>> {
 }
 
 fn step<'a>(previous: &Step<'a>) -> Option<Step<'a>> {
-    reduce(previous.term.clone()).not_id()
+    reduce(previous.term.clone()).not_id_or(expand).not_id()
 }

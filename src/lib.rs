@@ -1,5 +1,6 @@
 #![feature(box_patterns)]
 #![feature(default_free_fn)]
+#![feature(if_let_guard)]
 
 #[macro_export]
 macro_rules! λ {

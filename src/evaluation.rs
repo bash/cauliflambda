@@ -19,6 +19,8 @@ mod result;
 pub use result::*;
 mod substitute;
 pub use substitute::*;
+mod definitions;
+pub(crate) use definitions::*;
 
 pub fn var(name: &str) -> Term<'_> {
     Variable::new(name).into()
@@ -71,6 +73,14 @@ impl<'a> Step<'a> {
             Ok(self.term)
         } else {
             Err(self)
+        }
+    }
+
+    fn not_id_or(self, f: impl FnOnce(Term<'a>) -> Self) -> Self {
+        if self.kind == StepKind::Id {
+            f(self.term)
+        } else {
+            self
         }
     }
 
