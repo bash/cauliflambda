@@ -1,6 +1,6 @@
 #![feature(default_free_fn)]
 
-use cauliflambda::evaluation::{self, evaluate, Step};
+use cauliflambda::evaluation::{evaluate, Step};
 use cauliflambda::parse_formula;
 use diagnostics::unwrap_diagnostics_result;
 use repl::repl;
@@ -31,10 +31,8 @@ fn evaluate_file(path: &Path) -> Result<(), Box<dyn Error>> {
     let input = read_to_string(path)?;
     let formula = unwrap_diagnostics_result(&path.to_string_lossy(), &input, parse_formula(&input))
         .unwrap_or_else(|_| exit(1));
-    let term: evaluation::Term = formula.into();
-    println!("{}", term);
     let mut count = 0;
-    for Step { term, kind, .. } in evaluate(term) {
+    for Step { term, kind, .. } in evaluate(formula) {
         count += 1;
         println!("->>{kind} {term}");
     }
