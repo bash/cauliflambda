@@ -31,15 +31,38 @@ mod tests {
 
     #[test]
     fn detects_expressions_that_cannot_be_reduced_futher() {
-        let expressions = [
-            var("foo"),
-            nested_abs(["a", "b", "c"], var("c")),
-            abs("x", app(app(var("x"), var("x")), app(var("x"), var("x")))),
-            app(var("X"), abs("x", abs("y", var("x")))),
-        ];
+        let expressions = [λ![x], λ![λa.λb.λc.c], λ![λx.x x (x x)], λ![X(λx.λy.x)]];
         for expression in expressions {
             let result = dbg!(reduce(expression));
             assert!(matches!(result, Complete(_)));
         }
+    }
+
+    #[test]
+    fn reduces_leftmost_application_first() {
+        let expression = λ![ ((λx.x) X) ((λx.x) Y) ];
+        let expected = λ![ X ((λx.x) Y) ];
+        assert_eq!(expected, reduce(expression).beta().unwrap());
+    }
+
+    #[test]
+    fn reduces_outermost_application_first() {
+        let expression = λ![ (λx.(λy.y) x) X ];
+        let expected = λ![ (λy.y) X ];
+        assert_eq!(expected, reduce(expression).beta().unwrap());
+    }
+
+    #[test]
+    fn reduces_leftmost_outermost_application_first() {
+        let expression = λ![ ((λx.(λy.y) x) X) ((λx.x) Y) ];
+        let expected = λ![ ((λy.y) X) ((λx.x) Y) ];
+        assert_eq!(expected, reduce(expression).beta().unwrap());
+    }
+
+    #[test]
+    fn reduces_application_with_naming_conflict() {
+        let expression = λ![ (λy.λx.y) x ];
+        let expected = abs(("x", 1), var("x"));
+        assert_eq!(expected, reduce(expression).beta().unwrap());
     }
 }
