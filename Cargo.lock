@@ -131,7 +131,8 @@ dependencies = [
 [[package]]
 name = "fmtastic"
 version = "0.1.0"
-source = "git+https://github.com/bash/fmtastic.git?branch=main#7a035a0d91bc55d8434cc98329dacd91ddaa4fe1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "01e0788fd5d05fe28fb0a37654ac8ef55c2a069bb9e4e5ec5361de87f8f3a8dc"
 
 [[package]]
 name = "getrandom"
