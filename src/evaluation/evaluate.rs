@@ -2,8 +2,8 @@ use super::*;
 use std::iter;
 use StepKind::*;
 
-pub fn evaluate(term: Term<'_>) -> impl Iterator<Item = Step<'_>> {
-    iter::successors(seed_step(term), step).skip(1)
+pub fn evaluate<'a>(term: impl Into<Term<'a>>) -> impl Iterator<Item = Step<'a>> {
+    iter::successors(seed_step(term.into()), step).skip(1)
 }
 
 fn seed_step(term: Term<'_>) -> Option<Step<'_>> {
