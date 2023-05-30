@@ -12,6 +12,7 @@ checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 name = "cauliflambda"
 version = "0.1.0"
 dependencies = [
+ "fmtastic",
  "trait-set",
  "unicode-xid",
  "winnow",
@@ -126,6 +127,12 @@ dependencies = [
  "rustix",
  "windows-sys",
 ]
+
+[[package]]
+name = "fmtastic"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "01e0788fd5d05fe28fb0a37654ac8ef55c2a069bb9e4e5ec5361de87f8f3a8dc"
 
 [[package]]
 name = "getrandom"

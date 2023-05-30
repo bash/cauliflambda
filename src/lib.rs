@@ -1,10 +1,16 @@
+#![feature(box_patterns)]
+#![feature(default_free_fn)]
+
+#[macro_export]
+macro_rules! λ {
+    ($($expr:tt)*) => {
+        $crate::evaluation::Term::from($crate::parse_formula(stringify!($($expr)*)).unwrap().value)
+    };
+}
+
 mod parsers;
 pub mod syntax;
 pub use parsers::*;
-mod lowering;
-pub use lowering::*;
 mod diagnostics;
-pub mod namefree;
 pub use diagnostics::*;
-mod reducing;
-pub use reducing::*;
+pub mod evaluation;

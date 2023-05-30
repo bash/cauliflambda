@@ -74,11 +74,6 @@ impl Label {
             message: None,
         }
     }
-
-    pub(crate) fn with_message(mut self, message: impl ToString) -> Self {
-        self.message = Some(message.to_string());
-        self
-    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
