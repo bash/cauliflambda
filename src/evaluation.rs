@@ -37,11 +37,6 @@ pub fn abs<'a>(variable: impl Into<Variable<'a>>, term: impl Into<Term<'a>>) -> 
     Term::Abs(Box::new(Abstraction::new(variable.into(), term.into())))
 }
 
-// pub fn id<'a>(variable: impl Into<Variable<'a>>) -> Term<'a> {
-//     let variable = variable.into();
-//     abs(variable.clone(), variable)
-// }
-
 #[cfg(test)]
 fn nested_abs<'a, I, V>(variables: I, term: Term<'a>) -> Term<'a>
 where
