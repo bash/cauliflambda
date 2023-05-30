@@ -5,7 +5,7 @@ use Term::*;
 /// ### Precondition
 /// The input term's bound variables must not conflict with
 /// free variables in the replacement term. \
-/// Hint: Rename the bound variables using [`rename_bound`] before calling [`substitute`].
+/// Hint: Rename the bound variables using [`rename_bound()`] before calling [`substitute()`].
 pub fn substitute<'a>(needle: Variable, replacement: &Term<'a>, input: Term<'a>) -> Term<'a> {
     match input {
         Var(v) if v == needle => replacement.clone(),
