@@ -1,6 +1,6 @@
 #![feature(default_free_fn)]
 
-use cauliflambda::evaluation::{self, evaluate};
+use cauliflambda::evaluation::{self, evaluate, Step};
 use cauliflambda::parse_formula;
 use diagnostics::unwrap_diagnostics_result;
 use repl::repl;
@@ -34,9 +34,9 @@ fn evaluate_file(path: &Path) -> Result<(), Box<dyn Error>> {
     let term: evaluation::Term = formula.into();
     println!("{}", term);
     let mut count = 0;
-    for step in evaluate(term) {
+    for Step { term, kind, .. } in evaluate(term) {
         count += 1;
-        println!("->> {step}");
+        println!("->>{kind} {term}");
     }
     println!("Found normal form after {count} steps");
 
