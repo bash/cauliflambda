@@ -49,13 +49,13 @@ mod tests {
 
     #[test]
     fn ignores_bound_variables_that_satisfy_predicate() {
-        let term = abs("x", var("x"));
+        let term = λ![λx.x];
         assert_eq!(Original(term.clone()), rename_bound(term, |_| true));
     }
 
     #[test]
     fn ignores_free_variables_that_do_not_satisfy_predicate() {
-        let term = var("x");
+        let term = λ![x];
         assert_eq!(Original(term.clone()), rename_bound(term, |_| false));
     }
 
@@ -111,7 +111,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "No more disambiguators left")]
     fn panics_when_all_disambiguators_are_used_up() {
-        let term = abs("x", var("x"));
+        let term = λ![λx.x];
         rename_bound(term.clone(), |_| false);
     }
 }
