@@ -12,7 +12,7 @@ pub use evaluate::*;
 mod free;
 pub use free::*;
 mod beta;
-pub use beta::*;
+pub(crate) use beta::*;
 mod rename_bound;
 pub use rename_bound::*;
 mod result;
@@ -50,32 +50,57 @@ where
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum EvaluationResult<'a> {
-    /// One beta reduction step has been applied.
-    /// The expression may or may not be reduced further.
-    Beta(Term<'a>),
-    /// The expression can't be reduced further
-    Complete(Term<'a>),
+#[non_exhaustive]
+pub struct Step<'a> {
+    pub term: Term<'a>,
+    pub kind: StepKind,
 }
 
-impl<'a> EvaluationResult<'a> {
-    fn map(self, f: impl FnOnce(Term<'a>) -> Term<'a>) -> Self {
-        use EvaluationResult::*;
-        match self {
-            Beta(term) => Beta(f(term)),
-            Complete(term) => Complete(f(term)),
-        }
+impl<'a> Step<'a> {
+    fn new(kind: StepKind, term: Term<'a>) -> Self {
+        Step { term, kind }
     }
 
-    fn beta(self) -> Option<Term<'a>> {
-        if let EvaluationResult::Beta(term) = self {
-            Some(term)
+    fn map(mut self, f: impl FnOnce(Term<'a>) -> Term<'a>) -> Self {
+        self.term = f(self.term);
+        self
+    }
+
+    fn id_or_err(self) -> Result<Term<'a>, Self> {
+        if self.kind == StepKind::Id {
+            Ok(self.term)
         } else {
-            None
+            Err(self)
         }
+    }
+
+    fn not_id(self) -> Option<Self> {
+        (self.kind != StepKind::Id).then_some(self)
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum StepKind {
+    /// No operation was performed.
+    Id,
+    /// An α-conversion (i.e. renaming of bound variables to avoid conflicts).
+    Alpha,
+    /// A β-reduction (i.e. substitution of a bound variable with an applied term).
+    Beta,
+    /// A δ-reduction (in our case this is expansion of definitions).
+    Delta,
+}
+
+impl fmt::Display for StepKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            StepKind::Id => Ok(()),
+            StepKind::Alpha => f.write_str("α"),
+            StepKind::Beta => f.write_str("β"),
+            StepKind::Delta => f.write_str("δ"),
+        }
+    }
+}
 #[derive(Clone, PartialEq, Eq)]
 pub enum Term<'a> {
     Var(Variable<'a>),
