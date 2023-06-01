@@ -1,5 +1,5 @@
 use crate::diagnostics::unwrap_diagnostics_result;
-use cauliflambda::evaluation::{evaluate, Step};
+use cauliflambda::evaluation::{evaluate, Options, Step};
 use cauliflambda::parse_formula;
 use rustyline::error::ReadlineError;
 use rustyline::validate::MatchingBracketValidator;
@@ -47,7 +47,7 @@ impl ReplHelper {
 fn process_line(input: &str) {
     if let Ok(formula) = unwrap_diagnostics_result("<stdin>", input, parse_formula(input)) {
         let mut count = 0;
-        for Step { term, kind, .. } in evaluate(formula) {
+        for Step { term, kind, .. } in evaluate(formula, Options::default().add_church_numerals()) {
             count += 1;
             println!("->>{kind} {term}");
         }

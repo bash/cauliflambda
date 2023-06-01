@@ -1,4 +1,4 @@
-(λ Pair fst snd incr mult 0 1
+(λ Pair fst snd incr mult
  .
  (λ shift
   .
@@ -23,9 +23,5 @@
 (λ n f x . f (n f x))
 # mult
 (λ a b f. a (b f))
-# 0
-(λ f x . x)
-# 1
-(λ f x . f x)
-# Argument = 4
-(λ f x . f (f (f (f x))))
+# Argument
+0

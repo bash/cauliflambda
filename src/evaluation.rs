@@ -1,11 +1,13 @@
 use crate::syntax;
+use fmtastic::Subscript;
 use std::fmt::{self, Write};
 
 #[macro_use]
 mod macros;
 
+mod options;
+pub use options::*;
 mod rename;
-use fmtastic::Subscript;
 pub use rename::*;
 mod evaluate;
 pub use evaluate::*;
@@ -21,6 +23,8 @@ mod substitute;
 pub use substitute::*;
 mod definitions;
 pub(crate) use definitions::*;
+mod church_numerals;
+pub(crate) use church_numerals::*;
 
 pub fn var(name: &str) -> Term<'_> {
     Variable::new(name).into()

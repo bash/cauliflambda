@@ -1,6 +1,6 @@
 #![feature(default_free_fn)]
 
-use cauliflambda::evaluation::{evaluate, Step};
+use cauliflambda::evaluation::{evaluate, Options, Step};
 use cauliflambda::parse_formula;
 use diagnostics::unwrap_diagnostics_result;
 use repl::repl;
@@ -32,7 +32,7 @@ fn evaluate_file(path: &Path) -> Result<(), Box<dyn Error>> {
     let formula = unwrap_diagnostics_result(&path.to_string_lossy(), &input, parse_formula(&input))
         .unwrap_or_else(|_| exit(1));
     let mut count = 0;
-    for Step { term, kind, .. } in evaluate(formula) {
+    for Step { term, kind, .. } in evaluate(formula, Options::default().add_church_numerals()) {
         count += 1;
         println!("->>{kind} {term}");
     }
