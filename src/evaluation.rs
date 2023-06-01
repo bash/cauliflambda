@@ -21,8 +21,6 @@ mod result;
 pub use result::*;
 mod substitute;
 pub use substitute::*;
-mod definitions;
-pub(crate) use definitions::*;
 mod church_numerals;
 pub(crate) use church_numerals::*;
 
@@ -77,14 +75,6 @@ impl<'a> Step<'a> {
             Ok(self.term)
         } else {
             Err(self)
-        }
-    }
-
-    fn not_id_or(self, f: impl FnOnce(Term<'a>) -> Self) -> Self {
-        if self.kind == StepKind::Id {
-            f(self.term)
-        } else {
-            self
         }
     }
 

@@ -24,4 +24,4 @@
 # mult
 (λ a b f. a (b f))
 # Argument
-0
+4
