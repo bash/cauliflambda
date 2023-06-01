@@ -21,8 +21,8 @@ mod result;
 pub use result::*;
 mod substitute;
 pub use substitute::*;
-mod church_numerals;
-pub(crate) use church_numerals::*;
+mod church_encoding;
+pub(crate) use church_encoding::*;
 
 pub fn var(name: &str) -> Term<'_> {
     Variable::new(name).into()
@@ -41,7 +41,6 @@ pub fn abs<'a>(variable: impl Into<Variable<'a>>, term: impl Into<Term<'a>>) -> 
     Term::Abs(Box::new(Abstraction::new(variable.into(), term.into())))
 }
 
-#[cfg(test)]
 fn nested_abs<'a, I, V>(variables: I, term: Term<'a>) -> Term<'a>
 where
     V: Into<Variable<'a>>,

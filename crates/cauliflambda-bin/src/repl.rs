@@ -47,7 +47,7 @@ impl ReplHelper {
 fn process_line(input: &str) {
     if let Ok(formula) = unwrap_diagnostics_result("<stdin>", input, parse_formula(input)) {
         let mut count = 0;
-        for Step { term, kind, .. } in evaluate(formula, Options::default().add_church_numerals()) {
+        for Step { term, kind, .. } in evaluate(formula, Options::default().add_church_encoding()) {
             count += 1;
             println!("->>{kind} {term}");
         }

@@ -32,7 +32,7 @@ fn evaluate_file(path: &Path) -> Result<(), Box<dyn Error>> {
     let formula = unwrap_diagnostics_result(&path.to_string_lossy(), &input, parse_formula(&input))
         .unwrap_or_else(|_| exit(1));
     let mut count = 0;
-    for Step { term, kind, .. } in evaluate(formula, Options::default().add_church_numerals()) {
+    for Step { term, kind, .. } in evaluate(formula, Options::default().add_church_encoding()) {
         count += 1;
         println!("->>{kind} {term}");
     }

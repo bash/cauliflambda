@@ -6,8 +6,9 @@ pub struct Options {
 }
 
 impl Options {
-    pub fn add_church_numerals(self) -> Self {
+    pub fn add_church_encoding(self) -> Self {
         self.add_definitions(church_numeral_for_var)
+            .add_definitions(church_boolean_for_var)
     }
 
     pub fn add_definitions(
