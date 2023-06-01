@@ -1,6 +1,6 @@
 use super::*;
 
-pub(crate) fn church_numeral_for_var<'a>(var: Variable<'a>) -> Option<Term<'a>> {
+pub(crate) fn church_numeral_for_var(var: Variable<'_>) -> Option<Term<'_>> {
     (var.disambiguator == 0)
         .then_some(var.name)
         .and_then(|n| n.parse().ok())
@@ -14,7 +14,7 @@ pub(crate) fn church_numeral(n: u64) -> Term<'static> {
     )
 }
 
-pub(crate) fn church_boolean_for_var<'a>(var: Variable<'a>) -> Option<Term<'a>> {
+pub(crate) fn church_boolean_for_var(var: Variable<'_>) -> Option<Term<'_>> {
     match (var.name, var.disambiguator) {
         ("True", 0) => Some(church_boolean(true)),
         ("False", 0) => Some(church_boolean(false)),
