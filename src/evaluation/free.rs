@@ -6,18 +6,18 @@ use Term::*;
 pub type Variables<'a> = HashSet<Variable<'a>>;
 
 /// Finds the free variables of a given term. Variables are free if they're not bound by an abstraction.
-pub fn free_variables<'a>(term: &'a Term) -> Variables<'a> {
+pub fn free_variables<'a>(term: &Term<'a>) -> Variables<'a> {
     let (mut bound, mut free) = default();
     find_free_variables(term, &mut bound, &mut free);
     free
 }
 
-pub fn is_free_in<'a>(term: &'a Term) -> impl Fn(&Variable) -> bool + Clone + 'a {
+pub fn is_free_in<'a>(term: &Term<'a>) -> impl Fn(&Variable) -> bool + Clone + 'a {
     let free = free_variables(term);
     move |variable| free.contains(variable)
 }
 
-fn find_free_variables<'a>(term: &'a Term, bound: &mut Variables<'a>, free: &mut Variables<'a>) {
+fn find_free_variables<'a>(term: &Term<'a>, bound: &mut Variables<'a>, free: &mut Variables<'a>) {
     match term {
         Var(variable) => {
             if !bound.contains(variable) {

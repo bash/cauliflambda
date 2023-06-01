@@ -1,11 +1,13 @@
 use crate::syntax;
+use fmtastic::Subscript;
 use std::fmt::{self, Write};
 
 #[macro_use]
 mod macros;
 
+mod options;
+pub use options::*;
 mod rename;
-use fmtastic::Subscript;
 pub use rename::*;
 mod evaluate;
 pub use evaluate::*;
@@ -19,6 +21,8 @@ mod result;
 pub use result::*;
 mod substitute;
 pub use substitute::*;
+mod church_encoding;
+pub(crate) use church_encoding::*;
 
 pub fn var(name: &str) -> Term<'_> {
     Variable::new(name).into()
@@ -37,7 +41,6 @@ pub fn abs<'a>(variable: impl Into<Variable<'a>>, term: impl Into<Term<'a>>) -> 
     Term::Abs(Box::new(Abstraction::new(variable.into(), term.into())))
 }
 
-#[cfg(test)]
 fn nested_abs<'a, I, V>(variables: I, term: Term<'a>) -> Term<'a>
 where
     V: Into<Variable<'a>>,
