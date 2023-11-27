@@ -1,5 +1,3 @@
-#![feature(default_free_fn)]
-
 use cauliflambda::evaluation::{evaluate, Step};
 use cauliflambda::parse_formula;
 use diagnostics::unwrap_diagnostics_result;

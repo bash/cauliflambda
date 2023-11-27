@@ -5,7 +5,6 @@ use codespan_reporting::diagnostic::{Diagnostic as ReportedDiagnostic, Severity}
 use codespan_reporting::files::SimpleFiles;
 use codespan_reporting::term;
 use codespan_reporting::term::termcolor::{ColorChoice, StandardStream};
-use std::default::default;
 
 pub fn unwrap_diagnostics_result<O>(
     path: &str,
@@ -39,7 +38,7 @@ fn term_config() -> term::Config {
     term::Config {
         before_label_lines: 2,
         after_label_lines: 2,
-        ..default()
+        ..Default::default()
     }
 }
 
