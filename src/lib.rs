@@ -1,5 +1,4 @@
 #![feature(box_patterns)]
-#![feature(default_free_fn)]
 
 #[macro_export]
 macro_rules! λ {
@@ -13,4 +12,5 @@ pub mod syntax;
 pub use parsers::*;
 mod diagnostics;
 pub use diagnostics::*;
+mod default;
 pub mod evaluation;

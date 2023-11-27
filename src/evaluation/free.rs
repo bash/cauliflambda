@@ -1,6 +1,6 @@
 use super::*;
+use crate::default::default;
 use std::collections::HashSet;
-use std::default::default;
 use Term::*;
 
 pub type Variables<'a> = HashSet<Variable<'a>>;
