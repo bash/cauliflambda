@@ -1,7 +1,7 @@
 use crate::diagnostics::unwrap_diagnostics_result;
 use crate::side_effects::perform_side_effect;
-use cauliflambda::evaluation::{evaluate, evaluate_with_side_effects, Step, Term};
-use cauliflambda::{parse_formula, parse_program};
+use cauliflambda::evaluation::{evaluate_with_side_effects, Step};
+use cauliflambda::parse_program;
 use rustyline::error::ReadlineError;
 use rustyline::validate::MatchingBracketValidator;
 use rustyline::{Completer, Editor, Helper, Highlighter, Hinter, Validator};

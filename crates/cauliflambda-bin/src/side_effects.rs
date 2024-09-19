@@ -1,26 +1,24 @@
+use cauliflambda::evaluation::{abs, app, ChurchNumeral, SideEffect, Term, Tuple, Variable};
+use rand::{thread_rng, Rng};
 use std::io::stdin;
 
-use cauliflambda::evaluation::{abs, app, ChurchNumeral, Term, Tuple, Variable};
-use rand::{thread_rng, Rng};
-
-pub(crate) fn perform_side_effect<'a>(name: Variable<'a>, term: Term<'a>) -> Option<Term<'a>> {
-    const BEEP: Variable<'_> = Variable::new("beep");
-    const RAND: Variable<'_> = Variable::new("rand");
-    const READ: Variable<'_> = Variable::new("read");
-    const WRITE: Variable<'_> = Variable::new("write");
+pub(crate) fn perform_side_effect<'a>(s: SideEffect<'a>, term: Term<'a>) -> Option<Term<'a>> {
     const F: Variable<'_> = Variable::new("f");
-    if name == BEEP {
-        print!("\x07");
-        Some(term)
-    } else if name == RAND {
-        Some(abs(F, app(F, rand(term).unwrap_or(error()))))
-    } else if name == READ {
-        Some(app(abs(F, app(F, read().unwrap_or(error()))), term))
-    } else if name == WRITE {
-        Some(write(term).map(|_| id()).unwrap_or(error()))
-    } else {
-        None
+
+    match s.name {
+        "beep" => {
+            beep();
+            Some(term)
+        }
+        "rand" => Some(abs(F, app(F, rand(term).unwrap_or(error())))),
+        "read" => Some(app(abs(F, app(F, read().unwrap_or(error()))), term)),
+        "write" => Some(write(term).map(|_| id()).unwrap_or(error())),
+        _ => Some(error()),
     }
+}
+
+fn beep() {
+    print!("\x07");
 }
 
 fn rand(term: Term<'_>) -> Result<Term<'static>, ()> {

@@ -24,6 +24,7 @@ fn find_free_variables<'a>(term: &'a Term, bound: &mut Variables<'a>, free: &mut
                 free.insert(*variable);
             }
         }
+        SideEffect(_) => {}
         Abs! { variable, term } => {
             let inserted = bound.insert(*variable);
             find_free_variables(term, bound, free);

@@ -9,7 +9,7 @@ use Term::*;
 pub fn substitute<'a>(needle: Variable, replacement: &Term<'a>, input: Term<'a>) -> Term<'a> {
     match input {
         Var(v) if v == needle => replacement.clone(),
-        Var(v) => Var(v),
+        term @ (Var(_) | SideEffect(_)) => term,
         Abs(a) if a.variable == needle => Abs(a),
         Abs! { variable, term } => abs(variable, substitute(needle, replacement, term)),
         App! { left, right } => app(

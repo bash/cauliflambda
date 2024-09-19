@@ -21,7 +21,7 @@ pub fn rename_bound(term: Term<'_>, predicate: impl RenameBoundPredicate) -> Ter
             rename_bound(right, predicate),
             app,
         ),
-        term @ Var(_) => Original(term),
+        term @ (Var(_) | SideEffect(_)) => Original(term),
     }
 }
 

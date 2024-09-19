@@ -4,7 +4,7 @@
   .
   (\ is_even
    .
-   read (\n . write n (is_even n beep _))
+   read! (\n . write! n (is_even n beep! _))
   )
   (λn.n not True)
  )

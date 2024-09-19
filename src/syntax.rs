@@ -29,6 +29,7 @@ pub enum Formula<'a> {
     Abs(Box<Abstraction<'a>>),
     App(Box<Application<'a>>),
     Var(Identifier<'a>),
+    SideEffect(SideEffect<'a>),
 }
 
 impl<'a> Formula<'a> {
@@ -45,6 +46,7 @@ impl<'a> Formula<'a> {
             Formula::Abs(a) => &a.span,
             Formula::App(a) => &a.span,
             Formula::Var(v) => &v.span,
+            Formula::SideEffect(v) => &v.span,
         }
     }
 }
@@ -52,9 +54,10 @@ impl<'a> Formula<'a> {
 impl<'a> fmt::Display for Formula<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Formula::Abs(abs) => write!(f, "{}", abs),
-            Formula::App(app) => write!(f, "{}", app),
-            Formula::Var(var) => write!(f, "{}", var),
+            Formula::Abs(abs) => write!(f, "{abs}"),
+            Formula::App(app) => write!(f, "{app}"),
+            Formula::Var(var) => write!(f, "{var}"),
+            Formula::SideEffect(var) => write!(f, "{var}"),
         }
     }
 }
@@ -142,6 +145,24 @@ impl<'a> fmt::Display for Identifier<'a> {
 impl<'a> SyntaxEq for Identifier<'a> {
     fn syntax_eq(&self, other: &Self) -> bool {
         self.value == other.value
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct SideEffect<'a> {
+    pub ident: Identifier<'a>,
+    pub span: Span,
+}
+
+impl<'a> fmt::Display for SideEffect<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}!", self.ident)
+    }
+}
+
+impl<'a> SyntaxEq for SideEffect<'a> {
+    fn syntax_eq(&self, other: &Self) -> bool {
+        self.ident.syntax_eq(&other.ident)
     }
 }
 

@@ -115,6 +115,7 @@ pub enum Term<'a> {
     Var(Variable<'a>),
     Abs(Box<Abstraction<'a>>),
     App(Box<Application<'a>>),
+    SideEffect(SideEffect<'a>),
 }
 
 impl<'a> From<syntax::Formula<'a>> for Term<'a> {
@@ -123,6 +124,7 @@ impl<'a> From<syntax::Formula<'a>> for Term<'a> {
             syntax::Formula::Abs(abs) => Term::Abs(Box::new((*abs).into())),
             syntax::Formula::App(app) => Term::App(Box::new((*app).into())),
             syntax::Formula::Var(var) => Term::Var(var.into()),
+            syntax::Formula::SideEffect(s) => Term::SideEffect(s.into()),
         }
     }
 }
@@ -133,6 +135,7 @@ impl<'a> fmt::Debug for Term<'a> {
             Term::Var(v) => v.fmt(f),
             Term::Abs(a) => a.fmt(f),
             Term::App(a) => a.fmt(f),
+            Term::SideEffect(v) => v.fmt(f),
         }
     }
 }
@@ -161,6 +164,7 @@ impl<'a> fmt::Display for Term<'a> {
             Term::Var(v) => v.fmt(f),
             Term::Abs(a) => a.fmt(f),
             Term::App(a) => a.fmt(f),
+            Term::SideEffect(v) => v.fmt(f),
         }
     }
 }
@@ -293,6 +297,39 @@ fn with_parenthesis(
         fmt.write_char(')')?;
     }
     Ok(())
+}
+
+/// A side effect (i.e. an instruction to the runtime to perform some action).
+///
+/// Example: `read!`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[non_exhaustive]
+pub struct SideEffect<'a> {
+    pub name: &'a str,
+}
+
+impl<'a> SideEffect<'a> {
+    pub const fn new(name: &'a str) -> Self {
+        Self { name }
+    }
+}
+
+impl<'a> From<syntax::SideEffect<'a>> for SideEffect<'a> {
+    fn from(value: syntax::SideEffect<'a>) -> Self {
+        Self::new(value.ident.value)
+    }
+}
+
+impl<'a> From<&'a str> for SideEffect<'a> {
+    fn from(name: &'a str) -> Self {
+        Self::new(name)
+    }
+}
+
+impl<'a> fmt::Display for SideEffect<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}!", self.name)
+    }
 }
 
 #[cfg(test)]

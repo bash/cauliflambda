@@ -1,9 +1,9 @@
-use super::{app, evaluate, Application, Step, StepKind, Term, Variable};
+use super::{app, evaluate, Application, SideEffect, Step, StepKind, Term, Variable};
 use std::iter;
 use trait_set::trait_set;
 
 trait_set! {
-    pub trait Perform<'a> = FnMut(Variable<'a>, Term<'a>) -> Option<Term<'a>>;
+    pub trait Perform<'a> = FnMut(SideEffect<'a>, Term<'a>) -> Option<Term<'a>>;
 }
 
 pub fn evaluate_with_side_effects<'a>(
@@ -30,10 +30,8 @@ pub fn evaluate_with_side_effects<'a>(
 
 fn try_perform<'a>(term: &Term<'a>, mut perform: impl Perform<'a>) -> Option<Term<'a>> {
     match term {
-        Term::Var(name) => perform(name.clone(), Term::Var(Variable::new("_"))),
-        App! { left: Term::Var(name @ Variable { .. }), right } => {
-            perform(name.clone(), right.clone())
-        }
+        Term::SideEffect(name) => perform(*name, Term::Var(Variable::new("_"))),
+        App! { left: Term::SideEffect(name), right } => perform(*name, right.clone()),
         App! { left: left @ Term::App { .. }, right } => {
             try_perform(left, perform).map(|left| app(left, right.clone()))
         }
