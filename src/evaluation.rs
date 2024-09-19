@@ -25,6 +25,8 @@ mod church_numerals;
 pub use church_numerals::*;
 mod tuple;
 pub use tuple::*;
+mod encoding;
+pub use encoding::*;
 
 pub fn var(name: &str) -> Term<'_> {
     Variable::new(name).into()
