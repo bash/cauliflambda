@@ -12,5 +12,6 @@ pub mod syntax;
 pub use parsers::*;
 mod diagnostics;
 pub use diagnostics::*;
+mod call_by_need;
 mod default;
 pub mod evaluation;
