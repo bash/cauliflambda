@@ -1,4 +1,4 @@
-use cauliflambda::evaluation::{evaluate_with_side_effects, Step};
+use cauliflambda::evaluation::{evaluate_with_side_effects, Encode, Step};
 use cauliflambda::parse_program;
 use diagnostics::unwrap_diagnostics_result;
 use repl::repl;

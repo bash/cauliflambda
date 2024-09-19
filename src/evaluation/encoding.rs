@@ -10,6 +10,12 @@ pub trait Decode<'t>: Sized {
     fn decode(term: &Term<'t>) -> Option<Self>;
 }
 
+impl<'a> Term<'a> {
+    pub fn decode<T: Decode<'a>>(&self) -> Option<T> {
+        T::decode(self)
+    }
+}
+
 /// Encodes an optional value in a similar fashion as church bools
 /// as a λ-[`Term`] of the form `λj n.EXPR`.
 ///

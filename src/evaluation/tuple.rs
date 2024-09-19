@@ -1,32 +1,22 @@
-use crate::evaluation::{abs, app, Abstraction, Application, Term, Variable};
+use crate::evaluation::{abs, app, Abstraction, Application, Decode, Encode, Term, Variable};
 
-pub struct Tuple<T>(pub T);
-
-impl<'a, T> From<Tuple<(T, T)>> for Term<'a>
-where
-    T: Into<Term<'a>>,
-{
-    fn from(value: Tuple<(T, T)>) -> Self {
+impl<'a, T: Encode<'a>> Encode<'a> for (T, T) {
+    fn encode(&self) -> Term<'a> {
         const SELECTOR: Variable<'_> = Variable::new("s");
-        let (a, b) = value.0;
-        abs(SELECTOR, app(app(SELECTOR, a), b))
+        let (a, b) = self;
+        abs(SELECTOR, app(app(SELECTOR, a.encode()), b.encode()))
     }
 }
 
-impl<'a, T> TryFrom<Term<'a>> for Tuple<(T, T)>
-where
-    T: TryFrom<Term<'a>, Error = ()>,
-{
-    type Error = ();
-
-    fn try_from(value: Term<'a>) -> Result<Self, Self::Error> {
-        match value {
+impl<'a, T: Decode<'a>> Decode<'a> for (T, T) {
+    fn decode(term: &Term<'a>) -> Option<Self> {
+        match term {
             Abs! { variable: selector, term: App! { left: App! { left: Term::Var(f), right: a }, right: b } }
                 if f == selector =>
             {
-                Ok(Tuple((a.try_into()?, b.try_into()?)))
+                Some((T::decode(a)?, T::decode(b)?))
             }
-            _ => Err(()),
+            _ => None,
         }
     }
 }

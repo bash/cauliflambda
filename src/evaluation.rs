@@ -22,10 +22,8 @@ pub use substitute::*;
 mod side_effects;
 pub use side_effects::*;
 mod church_numerals;
-pub use church_numerals::*;
-mod tuple;
-pub use tuple::*;
 mod encoding;
+mod tuple;
 pub use encoding::*;
 
 pub fn var(name: &str) -> Term<'_> {

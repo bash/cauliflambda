@@ -1,4 +1,4 @@
-use cauliflambda::evaluation::{abs, app, ChurchNumeral, SideEffect, Term, Tuple, Variable};
+use cauliflambda::evaluation::{abs, app, Encode as _, SideEffect, Term, Variable};
 use rand::{thread_rng, Rng};
 use std::io::stdin;
 
@@ -13,7 +13,8 @@ pub(crate) fn perform_side_effect<'a>(s: SideEffect<'a>, term: Term<'a>) -> Opti
         "rand" => Some(abs(F, app(F, rand(term).unwrap_or(error())))),
         "read" => Some(app(abs(F, app(F, read().unwrap_or(error()))), term)),
         "write" => Some(write(term).map(|_| id()).unwrap_or(error())),
-        _ => Some(error()),
+        "error" => None,
+        _ => Some(Term::SideEffect(SideEffect::new("error"))),
     }
 }
 
@@ -21,25 +22,25 @@ fn beep() {
     print!("\x07");
 }
 
-fn rand(term: Term<'_>) -> Result<Term<'static>, ()> {
-    let (start, end): (ChurchNumeral, ChurchNumeral) = Tuple::try_from(term)?.0;
+fn rand(term: Term<'_>) -> Option<Term<'static>> {
+    let (start, end): (u64, u64) = term.decode()?;
     if start == end {
-        return Err(());
+        return None;
     }
-    let n = thread_rng().gen_range(start.0..end.0);
-    Ok(ChurchNumeral(n).into())
+    let n = thread_rng().gen_range(start..end);
+    Some(n.encode())
 }
 
-fn read() -> Result<Term<'static>, ()> {
+fn read() -> Option<Term<'static>> {
     let mut s = String::new();
-    stdin().read_line(&mut s).map_err(|_| ())?;
-    Ok(ChurchNumeral(s.trim().parse().map_err(|_| ())?).into())
+    stdin().read_line(&mut s).ok()?;
+    Some(s.trim().parse::<u64>().ok()?.encode())
 }
 
-fn write(n: Term<'_>) -> Result<(), ()> {
-    let n = ChurchNumeral::try_from(n)?.0;
+fn write(n: Term<'_>) -> Option<()> {
+    let n: u64 = n.decode()?;
     println!("{n}");
-    Ok(())
+    Some(())
 }
 
 fn id() -> Term<'static> {
