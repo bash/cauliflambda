@@ -19,6 +19,12 @@ mod result;
 pub use result::*;
 mod substitute;
 pub use substitute::*;
+mod side_effects;
+pub use side_effects::*;
+mod church_numerals;
+pub use church_numerals::*;
+mod tuple;
+pub use tuple::*;
 
 pub fn var(name: &str) -> Term<'_> {
     Variable::new(name).into()
@@ -89,6 +95,8 @@ pub enum StepKind {
     Beta,
     /// A δ-reduction (in our case this is expansion of definitions).
     Delta,
+    /// Side Effect
+    SideEffect,
 }
 
 impl fmt::Display for StepKind {
@@ -98,6 +106,7 @@ impl fmt::Display for StepKind {
             StepKind::Alpha => f.write_str("α"),
             StepKind::Beta => f.write_str("β"),
             StepKind::Delta => f.write_str("δ"),
+            StepKind::SideEffect => f.write_str("!"),
         }
     }
 }
@@ -168,7 +177,7 @@ pub struct Variable<'a> {
 }
 
 impl<'a> Variable<'a> {
-    pub fn new(name: &'a str) -> Self {
+    pub const fn new(name: &'a str) -> Self {
         Variable {
             name,
             disambiguator: 0,

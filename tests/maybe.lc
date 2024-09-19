@@ -1,0 +1,22 @@
+# Natural Numbers
+0 -> (λf.λx.x)
+1 -> (λf.λx.f x)
+2 -> (λf.λx.f (f x))
+3 -> (λf.λx.f (f (f x)))
+
+# Booleans
+False -> (λt f.t)
+True -> (λt f.f)
+not -> (λb.b False True)
+
+# Maybe
+Nothing -> (λj n.n)
+Just -> (λa.λj n.j a)
+bind -> (λm f.m f Nothing)
+map -> (λm f.bind m (λx. Just (f x)))
+filter -> (λm p.bind m (λx.p x (Just x) Nothing))
+
+# Example
+isEven -> (λn.n not True)
+
+filter (Just 3) isEven

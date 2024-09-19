@@ -8,6 +8,7 @@ use winnow::error::{VerboseError, VerboseErrorKind};
 use winnow::sequence::{delimited, preceded};
 use winnow::stream::Location;
 use winnow::token::{one_of, take_while};
+use winnow::trace::trace;
 use winnow::{Located, Parser as _};
 
 type Input<'a> = Located<&'a str>;
@@ -16,6 +17,13 @@ type IResult<'a, O> = winnow::IResult<Input<'a>, O, Error<'a>>;
 
 trait_set! {
     trait Parser<'a, O> = winnow::Parser<Input<'a>, O, VerboseError<Input<'a>>>;
+}
+
+pub fn parse_program(input: &str) -> DiagnosticsResult<Program<'_>> {
+    program
+        .parse(Input::new(input))
+        .map(WithDiagnostics::with_empty_diagnostics)
+        .map_err(to_diagnostics)
 }
 
 pub fn parse_formula(input: &str) -> DiagnosticsResult<Formula<'_>> {
@@ -49,6 +57,20 @@ fn error_to_message(error: &VerboseErrorKind) -> &'static str {
     }
 }
 
+fn program(input: Input<'_>) -> IResult<'_, Program<'_>> {
+    (
+        repeat(.., delimited(trivia, nominal_definition, trivia)),
+        formula,
+    )
+        .with_span()
+        .map(|((definitions, formula), span)| Program {
+            definitions,
+            formula,
+            span: span.into(),
+        })
+        .parse_next(input)
+}
+
 fn formula(input: Input<'_>) -> IResult<'_, Formula<'_>> {
     fold_repeat(
         1..,
@@ -72,9 +94,9 @@ fn apply_formula<'a>(left: Option<Formula<'a>>, right: Formula<'a>) -> Option<Fo
 
 fn one_formula(input: Input) -> IResult<Formula> {
     alt((
-        parenthesized(formula),
-        abstraction.map(Formula::abs),
-        identifier.map(Formula::Var),
+        trace("parenthesized", parenthesized(formula)),
+        trace("abstraction", abstraction).map(Formula::abs),
+        trace("identifier", identifier).map(Formula::Var),
     ))
     .parse_next(input)
 }
@@ -102,6 +124,23 @@ fn create_abstraction<'a>(
         formula: Formula::abs(abs),
         span: span.clone(),
     })
+}
+
+fn nominal_definition(input: Input) -> IResult<NominalDefinition> {
+    (
+        identifier,
+        preceded(
+            (trivia, "->"),
+            cut_err(preceded(trivia, parenthesized(formula))),
+        ),
+    )
+        .with_span()
+        .map(|((name, formula), span)| NominalDefinition {
+            name,
+            formula,
+            span: span.into(),
+        })
+        .parse_next(input)
 }
 
 fn variable_list(input: Input) -> IResult<Vec<Identifier>> {
@@ -137,7 +176,7 @@ fn is_identifier_continue(c: char) -> bool {
 }
 
 fn trivia(input: Input) -> IResult<()> {
-    repeat(.., alt((comment, discarded(multispace1)))).parse_next(input)
+    trace("trivia", repeat(.., alt((comment, discarded(multispace1))))).parse_next(input)
 }
 
 fn comment(input: Input) -> IResult<()> {

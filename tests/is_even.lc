@@ -1,0 +1,14 @@
+(\ True False
+ .
+ (\ not
+  .
+  (\ is_even
+   .
+   read (\n . write n (is_even n beep _))
+  )
+  (λn.n not True)
+ )
+ (λb.b False True)
+)
+(λt f.t) # True
+(λt f.f) # False

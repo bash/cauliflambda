@@ -3,6 +3,28 @@ use std::fmt;
 use std::ops::Range;
 
 #[derive(Debug, Clone)]
+pub struct Program<'a> {
+    pub definitions: Vec<NominalDefinition<'a>>,
+    pub formula: Formula<'a>,
+    pub span: Span,
+}
+
+impl SyntaxEq for Program<'_> {
+    fn syntax_eq(&self, other: &Self) -> bool {
+        self.definitions.syntax_eq(&other.definitions) && self.formula.syntax_eq(&other.formula)
+    }
+}
+
+impl fmt::Display for Program<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.definitions
+            .iter()
+            .try_for_each(|d| writeln!(f, "{d}"))?;
+        write!(f, "{}", self.formula)
+    }
+}
+
+#[derive(Debug, Clone)]
 pub enum Formula<'a> {
     Abs(Box<Abstraction<'a>>),
     App(Box<Application<'a>>),
@@ -87,6 +109,25 @@ impl<'a> SyntaxEq for Application<'a> {
 }
 
 #[derive(Debug, Clone)]
+pub struct NominalDefinition<'a> {
+    pub name: Identifier<'a>,
+    pub formula: Formula<'a>,
+    pub span: Span,
+}
+
+impl<'a> fmt::Display for NominalDefinition<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{} -> ({})", self.name, self.formula)
+    }
+}
+
+impl<'a> SyntaxEq for NominalDefinition<'a> {
+    fn syntax_eq(&self, other: &Self) -> bool {
+        self.name.syntax_eq(&other.name) && self.formula.syntax_eq(&other.formula)
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct Identifier<'a> {
     pub value: &'a str,
     pub span: Span,
@@ -133,4 +174,10 @@ impl Span {
 
 pub trait SyntaxEq {
     fn syntax_eq(&self, other: &Self) -> bool;
+}
+
+impl<T: SyntaxEq> SyntaxEq for Vec<T> {
+    fn syntax_eq(&self, other: &Self) -> bool {
+        self.len() == other.len() && self.iter().zip(other.iter()).all(|(l, r)| l.syntax_eq(r))
+    }
 }

@@ -1,6 +1,7 @@
 use crate::diagnostics::unwrap_diagnostics_result;
-use cauliflambda::evaluation::{evaluate, Step};
-use cauliflambda::parse_formula;
+use crate::side_effects::perform_side_effect;
+use cauliflambda::evaluation::{evaluate, evaluate_with_side_effects, Step, Term};
+use cauliflambda::{parse_formula, parse_program};
 use rustyline::error::ReadlineError;
 use rustyline::validate::MatchingBracketValidator;
 use rustyline::{Completer, Editor, Helper, Highlighter, Hinter, Validator};
@@ -45,9 +46,11 @@ impl ReplHelper {
 }
 
 fn process_line(input: &str) {
-    if let Ok(formula) = unwrap_diagnostics_result("<stdin>", input, parse_formula(input)) {
-        let mut count = 0;
-        for Step { term, kind, .. } in evaluate(formula) {
+    if let Ok(program) = unwrap_diagnostics_result("<stdin>", input, parse_program(input)) {
+        let mut count: u64 = 0;
+        for Step { term, kind, .. } in
+            evaluate_with_side_effects(program.formula, perform_side_effect)
+        {
             count += 1;
             println!("->>{kind} {term}");
         }

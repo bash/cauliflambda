@@ -9,6 +9,9 @@ unicode-xid = "0.2.4"
 winnow = "0.4.6"
 fmtastic = { version = "0.1.0" }
 
+[features]
+debug-parsing = ["winnow/debug"]
+
 [workspace]
 members = [
     "crates/cauliflambda-bin"

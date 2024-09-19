@@ -11,3 +11,4 @@ path = "src/main.rs"
 codespan-reporting = { git = "https://github.com/brendanzab/codespan", rev = "c84116f5" }
 rustyline = { version = "11.0.0", features = ["with-file-history", "derive"] }
 cauliflambda = { path = "../../" }
+rand = "0.8.5"
