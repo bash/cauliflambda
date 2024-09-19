@@ -5,7 +5,6 @@ use unicode_xid::UnicodeXID;
 use winnow::ascii::{multispace1, not_line_ending};
 use winnow::combinator::{alt, cut_err, fold_repeat, repeat};
 use winnow::error::{VerboseError, VerboseErrorKind};
-use winnow::sequence::terminated;
 use winnow::sequence::{delimited, preceded};
 use winnow::stream::Location;
 use winnow::token::{one_of, take_while};
@@ -97,7 +96,7 @@ fn one_formula(input: Input) -> IResult<Formula> {
     alt((
         trace("parenthesized", parenthesized(formula)),
         trace("abstraction", abstraction).map(Formula::abs),
-        trace("side_effect", side_effect).map(Formula::SideEffect),
+        trace("symbol", symbol).map(Formula::Sym),
         trace("identifier", identifier).map(Formula::Var),
     ))
     .parse_next(input)
@@ -153,10 +152,10 @@ fn lambda(input: Input) -> IResult<char> {
     one_of("&λ\\").parse_next(input)
 }
 
-fn side_effect(input: Input) -> IResult<SideEffect> {
-    terminated(identifier, "!")
+fn symbol(input: Input) -> IResult<Symbol> {
+    preceded(':', cut_err(identifier))
         .with_span()
-        .map(|(ident, span)| SideEffect {
+        .map(|(ident, span)| Symbol {
             ident,
             span: span.into(),
         })

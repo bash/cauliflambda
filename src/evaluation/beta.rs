@@ -20,15 +20,15 @@ fn recurse<'a>(left: Term<'a>, right: Term<'a>) -> Step<'a> {
 }
 
 fn rename_and_substitute<'a>(haystack: Term<'a>, needle: Variable<'a>, term: Term<'a>) -> Step<'a> {
-    match rename_bound(haystack, is_not_free_in(&term)) {
+    match rename_bound(haystack, is_bound_in(&term)) {
         Modified(haystack) => Step::new(Alpha, app(abs(needle, haystack), term)),
         Original(input) => Step::new(Beta, substitute(needle, &term, input)),
     }
 }
 
-fn is_not_free_in<'a>(term: &'a Term) -> impl Fn(&Variable) -> bool + Clone + 'a {
-    let free = free_variables(term);
-    move |variable| !free.contains(variable)
+fn is_bound_in<'a>(term: &'a Term) -> impl Fn(&Variable) -> bool + Clone + 'a {
+    let is_free = is_free_in(term);
+    move |v| !is_free(v)
 }
 
 #[cfg(test)]

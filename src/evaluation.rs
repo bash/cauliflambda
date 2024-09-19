@@ -25,13 +25,14 @@ mod church_numerals;
 mod encoding;
 mod tuple;
 pub use encoding::*;
+mod church_booleans;
 
 pub fn var(name: &str) -> Term<'_> {
     Variable::new(name).into()
 }
 
 #[cfg(test)]
-pub fn var_with(name: &str, disambiguator: usize) -> Term<'_> {
+pub fn var_with(name: &str, disambiguator: impl Into<Disambiguator>) -> Term<'_> {
     Variable::new(name).with_disambiguator(disambiguator).into()
 }
 
@@ -115,7 +116,6 @@ pub enum Term<'a> {
     Var(Variable<'a>),
     Abs(Box<Abstraction<'a>>),
     App(Box<Application<'a>>),
-    SideEffect(SideEffect<'a>),
 }
 
 impl<'a> From<syntax::Formula<'a>> for Term<'a> {
@@ -124,7 +124,9 @@ impl<'a> From<syntax::Formula<'a>> for Term<'a> {
             syntax::Formula::Abs(abs) => Term::Abs(Box::new((*abs).into())),
             syntax::Formula::App(app) => Term::App(Box::new((*app).into())),
             syntax::Formula::Var(var) => Term::Var(var.into()),
-            syntax::Formula::SideEffect(s) => Term::SideEffect(s.into()),
+            syntax::Formula::Sym(sym) => {
+                Term::Var(Variable::new_with(sym.ident.value, Disambiguator::Symbol))
+            }
         }
     }
 }
@@ -135,7 +137,6 @@ impl<'a> fmt::Debug for Term<'a> {
             Term::Var(v) => v.fmt(f),
             Term::Abs(a) => a.fmt(f),
             Term::App(a) => a.fmt(f),
-            Term::SideEffect(v) => v.fmt(f),
         }
     }
 }
@@ -164,7 +165,6 @@ impl<'a> fmt::Display for Term<'a> {
             Term::Var(v) => v.fmt(f),
             Term::Abs(a) => a.fmt(f),
             Term::App(a) => a.fmt(f),
-            Term::SideEffect(v) => v.fmt(f),
         }
     }
 }
@@ -177,20 +177,48 @@ impl<'a> fmt::Display for Term<'a> {
 #[non_exhaustive]
 pub struct Variable<'a> {
     pub name: &'a str,
-    pub disambiguator: usize,
+    pub disambiguator: Disambiguator,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Disambiguator {
+    None,
+    /// A symbol is guaranteed to be always free.
+    Symbol,
+    /// A numeric disambiguator that is incremented when needed.
+    Numeric(u64),
+}
+
+impl Default for Disambiguator {
+    fn default() -> Self {
+        Disambiguator::None
+    }
+}
+
+impl From<u64> for Disambiguator {
+    fn from(value: u64) -> Self {
+        Disambiguator::Numeric(value)
+    }
 }
 
 impl<'a> Variable<'a> {
     pub const fn new(name: &'a str) -> Self {
         Variable {
             name,
-            disambiguator: 0,
+            disambiguator: Disambiguator::None,
         }
     }
 
-    pub fn with_disambiguator(self, disambiguator: usize) -> Self {
+    pub fn new_with(name: &'a str, d: impl Into<Disambiguator>) -> Self {
         Variable {
-            disambiguator,
+            name,
+            disambiguator: d.into(),
+        }
+    }
+
+    pub fn with_disambiguator(self, disambiguator: impl Into<Disambiguator>) -> Self {
+        Self {
+            disambiguator: disambiguator.into(),
             ..self
         }
     }
@@ -208,18 +236,18 @@ impl<'a> From<&'a str> for Variable<'a> {
     }
 }
 
-impl<'a> From<(&'a str, usize)> for Variable<'a> {
-    fn from((name, disambiguator): (&'a str, usize)) -> Self {
+impl<'a> From<(&'a str, u64)> for Variable<'a> {
+    fn from((name, disambiguator): (&'a str, u64)) -> Self {
         Variable::new(name).with_disambiguator(disambiguator)
     }
 }
 
 impl<'a> fmt::Display for Variable<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if self.disambiguator > 0 {
-            write!(f, "{}{}", self.name, Subscript(self.disambiguator))
-        } else {
-            write!(f, "{}", self.name)
+        match self.disambiguator {
+            Disambiguator::None => write!(f, "{}", self.name),
+            Disambiguator::Symbol => write!(f, ":{}", self.name),
+            Disambiguator::Numeric(n) => write!(f, "{}{}", self.name, Subscript(n)),
         }
     }
 }
@@ -297,39 +325,6 @@ fn with_parenthesis(
         fmt.write_char(')')?;
     }
     Ok(())
-}
-
-/// A side effect (i.e. an instruction to the runtime to perform some action).
-///
-/// Example: `read!`.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-#[non_exhaustive]
-pub struct SideEffect<'a> {
-    pub name: &'a str,
-}
-
-impl<'a> SideEffect<'a> {
-    pub const fn new(name: &'a str) -> Self {
-        Self { name }
-    }
-}
-
-impl<'a> From<syntax::SideEffect<'a>> for SideEffect<'a> {
-    fn from(value: syntax::SideEffect<'a>) -> Self {
-        Self::new(value.ident.value)
-    }
-}
-
-impl<'a> From<&'a str> for SideEffect<'a> {
-    fn from(name: &'a str) -> Self {
-        Self::new(name)
-    }
-}
-
-impl<'a> fmt::Display for SideEffect<'a> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}!", self.name)
-    }
 }
 
 #[cfg(test)]

@@ -29,7 +29,7 @@ pub enum Formula<'a> {
     Abs(Box<Abstraction<'a>>),
     App(Box<Application<'a>>),
     Var(Identifier<'a>),
-    SideEffect(SideEffect<'a>),
+    Sym(Symbol<'a>),
 }
 
 impl<'a> Formula<'a> {
@@ -46,7 +46,7 @@ impl<'a> Formula<'a> {
             Formula::Abs(a) => &a.span,
             Formula::App(a) => &a.span,
             Formula::Var(v) => &v.span,
-            Formula::SideEffect(v) => &v.span,
+            Formula::Sym(v) => &v.span,
         }
     }
 }
@@ -57,7 +57,7 @@ impl<'a> fmt::Display for Formula<'a> {
             Formula::Abs(abs) => write!(f, "{abs}"),
             Formula::App(app) => write!(f, "{app}"),
             Formula::Var(var) => write!(f, "{var}"),
-            Formula::SideEffect(var) => write!(f, "{var}"),
+            Formula::Sym(var) => write!(f, "{var}"),
         }
     }
 }
@@ -148,19 +148,20 @@ impl<'a> SyntaxEq for Identifier<'a> {
     }
 }
 
+/// A symbol is a variable that's guaranteed to be free.
 #[derive(Debug, Clone)]
-pub struct SideEffect<'a> {
+pub struct Symbol<'a> {
     pub ident: Identifier<'a>,
     pub span: Span,
 }
 
-impl<'a> fmt::Display for SideEffect<'a> {
+impl<'a> fmt::Display for Symbol<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}!", self.ident)
+        write!(f, ":{}", self.ident)
     }
 }
 
-impl<'a> SyntaxEq for SideEffect<'a> {
+impl<'a> SyntaxEq for Symbol<'a> {
     fn syntax_eq(&self, other: &Self) -> bool {
         self.ident.syntax_eq(&other.ident)
     }

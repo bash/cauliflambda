@@ -4,7 +4,7 @@
   .
   (\ is_even
    .
-   read! (\n . write! n (is_even n beep! _))
+   :b (is_even (\f x . f (f (f x ))))
   )
   (λn.n not True)
  )

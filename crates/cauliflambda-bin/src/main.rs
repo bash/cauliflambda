@@ -1,8 +1,7 @@
-use cauliflambda::evaluation::{evaluate_with_side_effects, Encode, Step};
+use cauliflambda::evaluation::{evaluate_with_side_effects, Decode as _, Step, Term, Value};
 use cauliflambda::parse_program;
 use diagnostics::unwrap_diagnostics_result;
 use repl::repl;
-use side_effects::perform_side_effect;
 use std::env;
 use std::error::Error;
 use std::fs::read_to_string;
@@ -36,10 +35,14 @@ fn evaluate_file(path: &Path) -> Result<(), Box<dyn Error>> {
     println!("{}", program.formula);
 
     let mut count = 0;
-    for Step { term, kind, .. } in evaluate_with_side_effects(program.formula, perform_side_effect)
-    {
+    let mut normal_form: Term = program.formula.clone().into();
+    for Step { term, kind, .. } in evaluate_with_side_effects(program.formula) {
         count += 1;
+        normal_form = term.clone();
         println!("->>{kind} {term}");
+    }
+    if let Some(value) = Value::decode(&normal_form) {
+        println!("~~> {value}");
     }
     println!("Found normal form after {count} steps");
 

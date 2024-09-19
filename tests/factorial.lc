@@ -1,31 +1,34 @@
-(λ Pair fst snd incr mult 0 1
- .
- (λ shift
-  .
-  (λ decr
-   .
-   (λ self . self self)
-   (λ self n . n (λ_ . mult n ((self self) (decr n))) 1)
-  )
-  # decr
-  (λ n . n shift (Pair 0 0) fst)
- )
- # shift
- (λ p . Pair (p snd) (incr (p snd)))
+:n
+(
+    (λ Pair fst snd incr mult 0 1
+    .
+    (λ shift
+    .
+    (λ decr
+    .
+    (λ self . self self)
+    (λ self n . n (λ_ . mult n ((self self) (decr n))) 1)
+    )
+    # decr
+    (λ n . n shift (Pair 0 0) fst)
+    )
+    # shift
+    (λ p . Pair (p snd) (incr (p snd)))
+    )
+    # Pair
+    (λ a b s . s a b)
+    # fst
+    (λ a b . a)
+    # snd
+    (λ a b . b)
+    # incr
+    (λ n f x . f (n f x))
+    # mult
+    (λ a b f. a (b f))
+    # 0
+    (λ f x . x)
+    # 1
+    (λ f x . f x)
+    # Argument = 4
+    (λ f x . f (f (f (f x))))
 )
-# Pair
-(λ a b s . s a b)
-# fst
-(λ a b . a)
-# snd
-(λ a b . b)
-# incr
-(λ n f x . f (n f x))
-# mult
-(λ a b f. a (b f))
-# 0
-(λ f x . x)
-# 1
-(λ f x . f x)
-# Argument = 4
-(λ f x . f (f (f (f x))))

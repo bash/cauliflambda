@@ -20,11 +20,10 @@ pub fn is_free_in<'a>(term: &'a Term) -> impl Fn(&Variable) -> bool + Clone + 'a
 fn find_free_variables<'a>(term: &'a Term, bound: &mut Variables<'a>, free: &mut Variables<'a>) {
     match term {
         Var(variable) => {
-            if !bound.contains(variable) {
+            if variable.disambiguator == Disambiguator::Symbol || !bound.contains(variable) {
                 free.insert(*variable);
             }
         }
-        SideEffect(_) => {}
         Abs! { variable, term } => {
             let inserted = bound.insert(*variable);
             find_free_variables(term, bound, free);

@@ -21,7 +21,7 @@ pub fn rename_bound(term: Term<'_>, predicate: impl RenameBoundPredicate) -> Ter
             rename_bound(right, predicate),
             app,
         ),
-        term @ (Var(_) | SideEffect(_)) => Original(term),
+        term @ Var(_) => Original(term),
     }
 }
 
@@ -37,7 +37,7 @@ fn new_variable_for_term<'a>(
 fn new_variable(variable: Variable, predicate: impl Fn(&Variable) -> bool) -> Variable {
     (1..)
         .take(if cfg!(test) { 1000 } else { usize::MAX })
-        .filter(|d| *d != variable.disambiguator)
+        .filter(|d| Disambiguator::Numeric(*d) != variable.disambiguator)
         .map(|d| Variable::new(variable.name).with_disambiguator(d))
         .find(predicate)
         .expect("No more disambiguators left, what are you doing?")
@@ -86,15 +86,18 @@ mod tests {
                 &["x".into(), "y".into(), "z".into()],
             ),
             (
-                nested_abs([("x", 0), ("y", 0), ("z", 1)], var_with("z", 1)),
+                nested_abs(
+                    ["x".into(), "y".into(), Variable::new_with("z", 1)],
+                    var_with("z", 1),
+                ),
                 nested_abs(["x", "y", "z"], var("z")),
                 &["z".into()],
             ),
         ] {
-            assert_eq!(
-                Modified(expected_term),
-                rename_bound(term, |v| !taken.contains(v))
-            );
+            let renamed = rename_bound(term, |v| !taken.contains(v));
+            eprintln!("expected = {expected_term}");
+            eprintln!("actual = {}", renamed.clone().term());
+            assert_eq!(Modified(expected_term), renamed);
         }
     }
 

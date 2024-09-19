@@ -1,4 +1,6 @@
+use super::Disambiguator;
 use crate::evaluation::{abs, app, Term, Variable};
+use std::fmt;
 
 /// Encodes a value as a λ-[`Term`].
 pub trait Encode<'t> {
@@ -40,6 +42,44 @@ impl<'a, T: Encode<'a>, E: Encode<'a>> Encode<'a> for Result<T, E> {
         match self {
             Ok(value) => abs(OK, abs(ERROR, app(OK, value.encode()))),
             Err(error) => abs(OK, abs(ERROR, app(ERROR, error.encode()))),
+        }
+    }
+}
+
+/// A dynamically decodable value using "type hints".
+///
+/// e.g. `:n (λf x . f x)` is decoded as `Value::Integer(1)`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Value {
+    Integer(u64),
+    Bool(bool),
+}
+
+impl Decode<'_> for Value {
+    fn decode(term: &Term<'_>) -> Option<Self> {
+        if let Term::App(app) = term {
+            if let Term::Var(Variable {
+                name: hint,
+                disambiguator: Disambiguator::Symbol,
+            }) = &app.left
+            {
+                return match *hint {
+                    "n" => Some(Value::Integer(app.right.decode()?)),
+                    "b" => Some(Value::Bool(app.right.decode()?)),
+                    _ => None,
+                };
+            }
+        }
+
+        None
+    }
+}
+
+impl fmt::Display for Value {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Value::Integer(n) => n.fmt(f),
+            Value::Bool(b) => b.fmt(f),
         }
     }
 }

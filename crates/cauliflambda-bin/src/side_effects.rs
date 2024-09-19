@@ -1,11 +1,11 @@
-use cauliflambda::evaluation::{abs, app, Encode as _, SideEffect, Term, Variable};
+use cauliflambda::evaluation::{abs, app, Encode as _, Term, Variable};
 use rand::{thread_rng, Rng};
 use std::io::stdin;
 
-pub(crate) fn perform_side_effect<'a>(s: SideEffect<'a>, term: Term<'a>) -> Option<Term<'a>> {
+pub(crate) fn perform_side_effect<'a>(s: &'a str, term: Term<'a>) -> Option<Term<'a>> {
     const F: Variable<'_> = Variable::new("f");
 
-    match s.name {
+    match s {
         "beep" => {
             beep();
             Some(term)
@@ -13,8 +13,7 @@ pub(crate) fn perform_side_effect<'a>(s: SideEffect<'a>, term: Term<'a>) -> Opti
         "rand" => Some(abs(F, app(F, rand(term).unwrap_or(error())))),
         "read" => Some(app(abs(F, app(F, read().unwrap_or(error()))), term)),
         "write" => Some(write(term).map(|_| id()).unwrap_or(error())),
-        "error" => None,
-        _ => Some(Term::SideEffect(SideEffect::new("error"))),
+        _ => None,
     }
 }
 

@@ -1,6 +1,5 @@
 use crate::diagnostics::unwrap_diagnostics_result;
-use crate::side_effects::perform_side_effect;
-use cauliflambda::evaluation::{evaluate_with_side_effects, Step};
+use cauliflambda::evaluation::{evaluate_with_side_effects, Decode, Step, Term, Value};
 use cauliflambda::parse_program;
 use rustyline::error::ReadlineError;
 use rustyline::validate::MatchingBracketValidator;
@@ -48,11 +47,14 @@ impl ReplHelper {
 fn process_line(input: &str) {
     if let Ok(program) = unwrap_diagnostics_result("<stdin>", input, parse_program(input)) {
         let mut count: u64 = 0;
-        for Step { term, kind, .. } in
-            evaluate_with_side_effects(program.formula, perform_side_effect)
-        {
+        let mut normal_form: Term = program.formula.clone().into();
+        for Step { term, kind, .. } in evaluate_with_side_effects(program.formula) {
             count += 1;
+            normal_form = term.clone();
             println!("->>{kind} {term}");
+        }
+        if let Some(value) = Value::decode(&normal_form) {
+            println!("~~> {value}");
         }
         println!("Found normal form after {count} steps");
     }
